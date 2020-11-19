@@ -197,11 +197,14 @@
             "version": "latest"
           },
           "osDisk": {
-            "createOption": "FromImage"
+            "createOption": "FromImage",
+            "managedDisk": {
+        "storageAccountType": "StandardSSD_LRS"
+            }
           },
           "dataDisks": [
             {
-              "diskSizeGB": 127,
+              "diskSizeGB": 100,
               "lun": 0,
               "createOption": "Empty"
             }

@@ -1,4 +1,4 @@
-# Create WIndows Server VM to host Sage Drive with Azure BAckup Vault
+# Create Windows Server VM to host Sage Drive with Azure Backup Vault
 
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-quickstart-templates%2Fmaster%2F101-recovery-services-create-vm-and-configure-backup%2Fazuredeploy.json" target="_blank">

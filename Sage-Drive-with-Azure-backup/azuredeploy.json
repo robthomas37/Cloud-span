@@ -4,7 +4,7 @@
   "parameters": {
     "projectName": {
       "type": "string",
-      "maxLength": 8,
+      "maxLength": 20,
       "metadata": {
         "description": "Specifies a name for generating resource names."
       }
@@ -36,14 +36,14 @@
     },
     "windowsOSVersion": {
       "type": "string",
-      "defaultValue": "2016-Datacenter",
+      "defaultValue": "2019-Datacenter",
       "allowedValues": [
         "2008-R2-SP1",
         "2012-Datacenter",
         "2012-R2-Datacenter",
         "2016-Nano-Server",
         "2016-Datacenter-with-Containers",
-        "2016-Datacenter"
+        "2019-Datacenter"
       ],
       "metadata": {
         "description": "Specifies the Windows version for the VM. This will pick a fully patched image of this given Windows version. Allowed values: 2008-R2-SP1, 2012-Datacenter, 2012-R2-Datacenter, 2016-Nano-Server, 2016-Datacenter-with-Containers, 2016-Datacenter."
@@ -57,7 +57,7 @@
     "vNetSubnetName": "default",
     "vNetSubnetAddressPrefix": "10.0.0.0/24",
     "publicIPAddressName": "[concat(parameters('projectName'), '-ip')]",
-    "vmName": "[concat(parameters('projectName'), '-vm')]",
+    "vmName": "sage-drive1",
     "vNetName": "[concat(parameters('projectName'), '-vnet')]",
     "vaultName": "[concat(parameters('projectName'), '-vault')]",
     "backupFabric": "Azure",
@@ -99,15 +99,18 @@
       "properties": {
         "securityRules": [
           {
-            "name": "default-allow-3389",
+            "name":  "default-allow-3389",
             "properties": {
-              "priority": 1000,
-              "access": "Allow",
-              "direction": "Inbound",
-              "destinationPortRange": "3389",
-              "protocol": "Tcp",
-              "sourceAddressPrefix": "*",
-              "sourcePortRange": "*",
+              "priority":  1000,
+              "access":  "Allow",
+              "direction":  "Inbound",
+              "destinationPortRange":  "3389",
+              "protocol":  "Tcp",
+              "sourcePortRange":  "*",
+              "sourceAddressPrefixes": [
+                                "78.148.84.204",
+                                "195.206.180.91"
+                            ],
               "destinationAddressPrefix": "*"
             }
           }
@@ -178,7 +181,7 @@
       ],
       "properties": {
         "hardwareProfile": {
-          "vmSize": "Standard_A2"
+          "vmSize": "Standard_D2_v3"
         },
         "osProfile": {
           "computerName": "[variables('vmName')]",
@@ -193,13 +196,19 @@
             "version": "latest"
           },
           "osDisk": {
-            "createOption": "FromImage"
+            "createOption": "FromImage",
+            "managedDisk": {
+        "storageAccountType": "StandardSSD_LRS"
+            }
           },
           "dataDisks": [
             {
-              "diskSizeGB": 1023,
+              "diskSizeGB": 100,
               "lun": 0,
-              "createOption": "Empty"
+              "createOption": "Empty",
+              "managedDisk": {
+        "storageAccountType": "StandardSSD_LRS"
+            }
             }
           ]
         },

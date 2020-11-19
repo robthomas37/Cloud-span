@@ -33,8 +33,13 @@
                 { 
                     "principalId": "5527cd3b-91b6-4891-a1d6-e7fab9a1bb37", 
                     "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
-                    "principalIdDisplayName": "Valto Support" 
-                }
+                    "principalIdDisplayName": "Valto Support - Contributor" 
+                },
+                { 
+                    "principalId": "b525224a-7540-45eb-8321-d03c01d84e0c", 
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+                    "principalIdDisplayName": "Valto Support - Reader" 
+                }   
             
             ]
         }              

@@ -29,6 +29,7 @@ This deployment will allow delagated access to the customers subscriptions to pr
 Customers can use the Service providers page in the Azure portal to view details about service providers with delegated access.
 To access the Service providers page in the Azure portal, the customer can select All services, then search for Service providers and select it. They can also find it by entering "Service providers" or "Azure Lighthouse" in the search box near the top of the Azure portal.
 <br />
+<br />
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frobthomas37%2FCloud-span%2Fmaster%2FAzure%2520Lighthouse%2FValtoCSP-StandardSupport.json)
 

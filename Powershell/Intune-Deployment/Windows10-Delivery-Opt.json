@@ -1,0 +1,39 @@
+{
+    "@odata.type":  "#microsoft.graph.windowsDeliveryOptimizationConfiguration",
+    "id":  "2945ab5f-70c2-4ec4-966c-0b6d94162e76",
+    "lastModifiedDateTime":  "2021-01-08T13:03:23.0646581Z",
+    "roleScopeTagIds":  [
+                            "0"
+                        ],
+    "supportsScopeTags":  true,
+    "deviceManagementApplicabilityRuleOsEdition":  null,
+    "deviceManagementApplicabilityRuleOsVersion":  null,
+    "deviceManagementApplicabilityRuleDeviceMode":  null,
+    "createdDateTime":  "2021-01-08T13:02:17.7907348Z",
+    "description":  "HTTP blended with peering behind same NAT\n50% Battery for Mobile Devices\n7 Days Cache store\nNo dedicated host",
+    "displayName":  "Windows 10 Delivery Optimisation",
+    "version":  3,
+    "deliveryOptimizationMode":  "httpWithPeeringNat",
+    "restrictPeerSelectionBy":  "notConfigured",
+    "groupIdSource":  null,
+    "backgroundDownloadFromHttpDelayInSeconds":  60,
+    "foregroundDownloadFromHttpDelayInSeconds":  60,
+    "minimumRamAllowedToPeerInGigabytes":  4,
+    "minimumDiskSizeAllowedToPeerInGigabytes":  32,
+    "minimumFileSizeToCacheInMegabytes":  10,
+    "minimumBatteryPercentageAllowedToUpload":  50,
+    "modifyCacheLocation":  null,
+    "maximumCacheAgeInDays":  7,
+    "maximumCacheSize":  null,
+    "vpnPeerCaching":  "notConfigured",
+    "cacheServerHostNames":  [
+
+                             ],
+    "cacheServerForegroundDownloadFallbackToHttpDelayInSeconds":  0,
+    "cacheServerBackgroundDownloadFallbackToHttpDelayInSeconds":  0,
+    "bandwidthMode":  {
+                          "@odata.type":  "#microsoft.graph.deliveryOptimizationBandwidthPercentage",
+                          "maximumBackgroundBandwidthPercentage":  25,
+                          "maximumForegroundBandwidthPercentage":  50
+                      }
+}

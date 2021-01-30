@@ -1,7 +1,7 @@
 <##################################################################################################
 #
-.SYNOPSIS
-    This script will create the following recommended Baseline Conditional Access policies in your tenant:
+.BASELINE Policies
+    This script will create the following recommended Baseline Conditional Access policies in your Enviroment:
     1. [All cloud apps] BLOCK: Legacy authentication clients
     2. [All cloud apps] GRANT: Require MFA for Admin users
     3. [All cloud apps] GRANT: Require MFA for All users
@@ -10,24 +10,9 @@
     6. [Office 365] GRANT: Require compliant device for supported platforms
     7. [Office 365] SESSION: Prevent downloads from unmanaged devices and browsers
 
-
-.NOTES
-    1. You may need to disable the 'Security defaults' first. See https://aka.ms/securitydefaults
-    2. None of the policies created by this script will be enabled by default.
-    3. Before enabling policies, you should notify end users about the expected impacts
-    4. Be sure to populate the 'Exclude from CA' security group with at least one admin account for emergency access
-
-.HOW-TO
-    1. To install the Azure AD PowerShell module use: Install-Module AzureAD
-    2. Connect to Azure AD via PowerShell to run this script: Connect-AzureAD 
-    3. Run .\Baseline-ConditionalAccessPolicies.ps1
-    4. Reference: https://docs.microsoft.com/en-us/powershell/azure/active-directory/install-adv2?view=azureadps-2.0#installing-the-azure-ad-module
-
-.DETAILS
-    FileName:    Baseline-ConditionalAccessPolicies.ps1
-    Author:      Alex Fields, ITProMentor.com
-    Created:     September 2020
-	Updated:     October 2020
+.PREREQUISITES
+    To install the Azure AD PowerShell module use: Install-Module AzureAD
+    https://docs.microsoft.com/en-us/powershell/module/azuread/?view=azureadps-2.0
 
 #>
 ###################################################################################################

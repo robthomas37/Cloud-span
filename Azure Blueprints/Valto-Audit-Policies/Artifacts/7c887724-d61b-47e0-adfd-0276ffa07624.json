@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "Vulnerabilities on your SQL databases should be remediated",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/feedbf84-6b99-488c-acc2-71c829aa5ffc",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('vulnerabilitiesonyourSQLdatabasesshouldberemediated_effect')]"
+      }
+    }
+  }
+}

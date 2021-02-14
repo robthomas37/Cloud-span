@@ -1,0 +1,43 @@
+{
+  "properties": {
+    "displayName": "Valto-Activity-Logging",
+    "description": "Dedicated Log Analytics Workspace and Activity Logging Configuration",
+    "targetScope": "subscription",
+    "parameters": {
+      "regionAbbr": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Regional Abbreviation",
+          "description": "3 letter abbreviation for target region (e.g. WEU for West Europe, UKS for UK South)."
+        },
+        "defaultValue": "uks"
+      },
+      "AzureRegion": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Select the Azure Region to deploy the Resources",
+          "description": "AzureRegion",
+          "strongType": "location"
+        },
+        "defaultValue": "uksouth",
+        "allowedValues": [
+          "uksouth",
+          "ukwest",
+          "westeurope",
+          "northeurope"
+        ]
+      }
+    },
+    "resourceGroups": {
+      "ActivityLogs-RG": {
+        "name": "rg-activitylogs",
+        "location": "[parameters('AzureRegion')]",
+        "metadata": {
+          "displayName": "Resource Group for Per-Subscription Activity Logging and Alert Groups"
+        },
+        "dependsOn": []
+      }
+    },
+    "blueprintName": "Valto-Activity-Logging"
+  }
+}

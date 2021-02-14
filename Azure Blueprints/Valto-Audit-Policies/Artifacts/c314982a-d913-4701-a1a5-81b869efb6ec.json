@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "Management ports should be closed on your virtual machines",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/22730e10-96f6-4aac-ad84-9383d35b5917",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('managementportsshouldbeclosedonyourvirtualmachines_effect')]"
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "System updates on virtual machine scale sets should be installed",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/c3f317a7-a95c-4547-b7e7-11017ebdf2fe",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('systemupdatesonvirtualmachinescalesetsshouldbeinstalled_effect')]"
+      }
+    }
+  }
+}

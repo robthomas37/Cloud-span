@@ -1,0 +1,89 @@
+{
+  "kind": "template",
+  "properties": {
+    "displayName": "Subscription Activity Logging",
+    "description": "Deploys a dedicated Log Analytics Workspace (with 365 day retention) and configures Activity Logs.",
+    "dependsOn": [],
+    "template": {
+      "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+      "contentVersion": "2.0.0.0",
+      "parameters": {},
+      "variables": {
+        "diagStorAccName": "[concat('stordiag',uniqueString(subscription().subscriptionId, resourceGroup().id))]",
+        "workspaceName": "[concat('log-act-', uniqueString(subscription().subscriptionId, resourceGroup().id))]"
+      },
+      "resources": [
+        {
+          "type": "Microsoft.Storage/storageAccounts",
+          "apiVersion": "2018-07-01",
+          "name": "[variables('diagStorAccName')]",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "displayName": "[variables('diagStorAccName')]"
+          },
+          "sku": {
+            "name": "Standard_LRS"
+          },
+          "kind": "Storagev2",
+          "properties": {
+            "networkAcls": {
+              "bypass": "AzureServices",
+              "virtualNetworkRules": [],
+              "ipRules": [
+                {
+                  "value": "81.19.217.43",
+                  "action": "Allow"
+                },
+                {
+                  "value": "195.206.180.91",
+                  "action": "Allow"
+                }
+              ],
+              "defaultAction": "Deny"
+            },
+            "supportsHttpsTrafficOnly": true,
+            "encryption": {
+              "services": {
+                "file": {
+                  "enabled": true
+                },
+                "blob": {
+                  "enabled": true
+                }
+              },
+              "keySource": "Microsoft.Storage"
+            },
+            "accessTier": "Hot"
+          }
+        },
+        {
+          "type": "Microsoft.OperationalInsights/workspaces",
+          "name": "[variables('workspaceName')]",
+          "apiVersion": "2015-11-01-preview",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "sku": {
+              "Name": "PerGB2018"
+            },
+            "retentionInDays": 365
+          }
+        },
+        {
+          "name": "[concat(variables('workspaceName'), '/', subscription().subscriptionId)]",
+          "type": "Microsoft.OperationalInsights/workspaces/dataSources",
+          "apiVersion": "2015-11-01-preview",
+          "tags": {},
+          "dependsOn": [
+            "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "properties": {
+            "linkedResourceId": "[concat(subscription().Id, '/providers/microsoft.insights/eventTypes/management')]"
+          },
+          "kind": "AzureActivityLog"
+        }
+      ]
+    },
+    "resourceGroup": "ActivityLogs-RG",
+    "parameters": {}
+  }
+}

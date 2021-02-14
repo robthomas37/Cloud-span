@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "Long-term geo-redundant backup should be enabled for Azure SQL Databases",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/d38fc420-0735-4ef3-ac11-c806f651a570",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('long-termgeo-redundantbackupshouldbeenabledforAzureSQLDatabases_effect')]"
+      }
+    }
+  }
+}

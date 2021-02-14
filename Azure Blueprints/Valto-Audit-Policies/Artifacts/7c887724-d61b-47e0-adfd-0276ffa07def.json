@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "Vulnerability assessment should be enabled on your SQL managed instances",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/1b7aa243-30e4-4c9e-bca8-d0d3022b634a",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('vulnerabilityassessmentshouldbeenabledonyourSQLmanagedinstances_effect')]"
+      }
+    }
+  }
+}

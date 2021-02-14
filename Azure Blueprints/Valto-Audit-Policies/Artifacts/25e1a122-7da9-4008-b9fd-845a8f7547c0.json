@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "Diagnostic logs in Virtual Machine Scale Sets should be enabled",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/7c1b1214-f927-48bf-8882-84f0af6588b1",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('diagnosticlogsinVirtualMachineScaleSetsshouldbeenabled_effect')]"
+      }
+    }
+  }
+}

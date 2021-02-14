@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "FTPS only should be required in your API App",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/9a1b8c48-453a-4044-86c3-d8bfd823e4f5",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('fTPSonlyshouldberequiredinyourAPIApp_effect')]"
+      }
+    }
+  }
+}

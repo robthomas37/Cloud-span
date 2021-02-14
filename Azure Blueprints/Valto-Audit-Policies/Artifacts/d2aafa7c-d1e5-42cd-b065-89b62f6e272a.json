@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "Vulnerability Assessment settings for SQL server should contain an email address to receive scan reports",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/057d6cfe-9c4f-4a6d-bc60-14420ea1f1a9",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('vulnerabilityAssessmentsettingsforSQLservershouldcontainanemailaddresstoreceivescanreports_effect')]"
+      }
+    }
+  }
+}

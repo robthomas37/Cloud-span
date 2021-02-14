@@ -1,0 +1,16 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "[Preview]: Deploy Log Analytics agent for Windows virtual machine scale sets",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/3c1b3629-c8f8-4bf6-862c-037cb9094038",
+    "parameters": {
+      "logAnalytics": {
+        "value": "[parameters('workspaceId')]"
+      },
+      "listOfImageIdToInclude": {
+        "value": []
+      }
+    }
+  }
+}

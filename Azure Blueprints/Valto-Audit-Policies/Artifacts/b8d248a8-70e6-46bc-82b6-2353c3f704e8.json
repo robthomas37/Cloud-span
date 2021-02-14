@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "Microsoft Antimalware for Azure should be configured to automatically update protection signatures",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/c43e4a30-77cb-48ab-a4dd-93f175c63b57",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('microsoftAntimalwareforAzureshouldbeconfiguredtoautomaticallyupdateprotectionsignatures_effect')]"
+      }
+    }
+  }
+}

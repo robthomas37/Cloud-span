@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "API App should only be accessible over HTTPS",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/b7ddfbdc-1260-477d-91fd-98bd9be789a6",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('aPIAppshouldonlybeaccessibleoverHTTPS_effect')]"
+      }
+    }
+  }
+}

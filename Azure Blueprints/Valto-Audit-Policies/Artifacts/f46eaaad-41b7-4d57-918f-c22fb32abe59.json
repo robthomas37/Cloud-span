@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "The Log Analytics agent should be installed on virtual machines",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/a70ca396-0a34-413a-88e1-b956c1e683be",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('theLogAnalyticsagentshouldbeinstalledonvirtualmachines_effect')]"
+      }
+    }
+  }
+}

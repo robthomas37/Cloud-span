@@ -1,0 +1,133 @@
+{
+  "kind": "template",
+  "properties": {
+    "displayName": "Subscription Alert Groups and Service Health Alerts",
+    "description": "Creates Alert Groups (one for emails to Azure Support, one for emails to Service Now (customer eamil)) and setup of Service Health Alerts",
+    "dependsOn": [],
+    "template": {
+      "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+      "contentVersion": "2.0.0.0",
+      "parameters": {
+        "customerName": {
+          "type": "String",
+          "metadata": {
+            "description": "Name of the customer - will be used to prefix the Service Health Alert so it's identifiable when the ticket is received by the Service Desk."
+          }
+        },
+        "serviceHealthAlertRegion": {
+          "type": "String",
+          "metadata": {
+            "description": "Full region name for Service Health Alerts including correct capitalisation and spacing (e.g. UK South)."
+          }
+        },
+        "serviceNowEmail": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          }
+        },
+        "azureSupportEmail": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          }
+        }
+      },
+      "variables": {
+        "serviceHealthAlertName": "[concat(parameters('customerName'), ' Service Health Alert')]",
+        "serviceHealthRegions": "[createArray('Global', parameters('serviceHealthAlertRegion'))]"
+      },
+      "resources": [
+        {
+          "type": "Microsoft.Insights/actionGroups",
+          "apiVersion": "2019-06-01",
+          "name": "email-azuresupport",
+          "location": "Global",
+          "properties": {
+            "groupShortName": "emailazsupp",
+            "enabled": true,
+            "emailReceivers": [
+              {
+                "name": "emailReceiver",
+                "emailAddress": "[parameters('azureSupportEmail')]"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Microsoft.Insights/actionGroups",
+          "apiVersion": "2019-06-01",
+          "name": "email-servicenow",
+          "location": "Global",
+          "properties": {
+            "groupShortName": "emailsnow",
+            "enabled": true,
+            "emailReceivers": [
+              {
+                "name": "emailReceiver",
+                "emailAddress": "[parameters('serviceNowEmail')]"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Microsoft.Insights/activityLogAlerts",
+          "apiVersion": "2017-04-01",
+          "name": "[variables('serviceHealthAlertName')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Insights/actionGroups/', 'email-azuresupport')]",
+            "[resourceId('Microsoft.Insights/actionGroups/', 'email-servicenow')]"
+          ],
+          "location": "Global",
+          "properties": {
+            "enabled": true,
+            "scopes": [
+              "[subscription().id]"
+            ],
+            "condition": {
+              "allOf": [
+                {
+                  "field": "category",
+                  "equals": "ServiceHealth",
+                  "containsAny": null
+                },
+                {
+                  "field": "properties.incidentType",
+                  "equals": "Incident",
+                  "containsAny": null
+                },
+                {
+                  "field": "properties.impactedServices[*].ImpactedRegions[*].RegionName",
+                  "equals": null,
+                  "containsAny": "[variables('serviceHealthRegions')]"
+                }
+              ]
+            },
+            "actions": {
+              "actionGroups": [
+                {
+                  "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', 'email-servicenow')]"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "resourceGroup": "Alerts-RG",
+    "parameters": {
+      "customerName": {
+        "value": "[parameters('customerName')]"
+      },
+      "serviceHealthAlertRegion": {
+        "value": "[parameters('serviceHealthAlertRegion')]"
+      },
+      "serviceNowEmail": {
+        "value": "[parameters('serviceNowEmail')]"
+      },
+      "azureSupportEmail": {
+        "value": "[parameters('azureSupportEmail')]"
+      }
+    }
+  }
+}

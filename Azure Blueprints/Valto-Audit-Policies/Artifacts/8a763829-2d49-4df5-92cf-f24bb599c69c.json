@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "FTPS should be required in your Web App",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/4d24b6d4-5e53-4a4f-a7f4-618fa573ee4b",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('fTPSshouldberequiredinyourWebApp_effect')]"
+      }
+    }
+  }
+}

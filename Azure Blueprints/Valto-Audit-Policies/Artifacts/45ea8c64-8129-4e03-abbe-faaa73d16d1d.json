@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "Microsoft IaaSAntimalware extension should be deployed on Windows servers",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/9b597639-28e4-48eb-b506-56b05d366257",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('microsoftIaaSAntimalwareextensionshouldbedeployedonWindowsservers_effect')]"
+      }
+    }
+  }
+}

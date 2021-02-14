@@ -1,0 +1,13 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "The Log Analytics agent should be installed on Virtual Machine Scale Sets",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/efbde977-ba53-4479-b8e9-10b957924fbf",
+    "parameters": {
+      "effect": {
+        "value": "[parameters('theLogAnalyticsagentshouldbeinstalledonVirtualMachineScaleSets_effect')]"
+      }
+    }
+  }
+}

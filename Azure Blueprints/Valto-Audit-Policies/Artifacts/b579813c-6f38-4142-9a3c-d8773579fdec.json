@@ -1,0 +1,33 @@
+{
+  "kind": "policyAssignment",
+  "properties": {
+    "displayName": "[Preview]: Audit CIS Microsoft Azure Foundations Benchmark 1.1.0 recommendations and deploy specific supporting VM Extensions",
+    "dependsOn": [],
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policySetDefinitions/1a5bb27d-173f-493e-9568-eb56638dde4d",
+    "parameters": {
+      "listOfRegionsWhereNetworkWatcherShouldBeEnabled": {
+        "value": []
+      },
+      "listOfApprovedVMExtensions": {
+        "value": [
+          "AzureDiskEncryption",
+          "AzureDiskEncryptionForLinux",
+          "DependencyAgentWindows",
+          "DependencyAgentLinux",
+          "IaaSAntimalware",
+          "IaaSDiagnostics",
+          "LinuxDiagnostic",
+          "MicrosoftMonitoringAgent",
+          "NetworkWatcherAgentLinux",
+          "NetworkWatcherAgentWindows",
+          "OmsAgentForLinux",
+          "VMSnapshot",
+          "VMSnapshotLinux",
+          "vmaccess",
+          "SiteRecovery-Windows",
+          "windowsagent.azuresecuritycenter"
+        ]
+      }
+    }
+  }
+}

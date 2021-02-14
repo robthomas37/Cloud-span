@@ -1,0 +1,63 @@
+{
+  "properties": {
+    "displayName": "Valto-Alerts",
+    "description": "Deploys Alert Groups and Alerts",
+    "targetScope": "subscription",
+    "parameters": {
+      "serviceHealthAlertRegion": {
+        "type": "string",
+        "metadata": {
+          "description": "Full region name for Service Health Alerts including correct capitalisation and spacing (e.g. UK South) - required for Service Health Alert setup."
+        }
+      },
+      "customerName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name of the customer - will be used to prefix the Service Health Alert so it's identifiable when the ticket is received by the Service Desk."
+        }
+      },
+      "serviceNowEmail": {
+        "type": "string",
+        "metadata": {
+          "description": ""
+        },
+        "defaultValue": "support@6valto.co.uk"
+      },
+      "azureSupportEmail": {
+        "type": "string",
+        "metadata": {
+          "description": ""
+        },
+        "defaultValue": "support@6valto.co.uk"
+      },
+      "AzureRegion": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Select the Azure Region to deploy the Resources",
+          "description": "AzureRegion",
+          "strongType": "location"
+        },
+        "defaultValue": "uksouth",
+        "allowedValues": [
+          "uksouth",
+          "ukwest",
+          "westeurope",
+          "northeurope",
+          "eastus",
+          "eastus2"
+        ]
+      }
+    },
+    "resourceGroups": {
+      "Alerts-RG": {
+        "name": "rg-alerts",
+        "location": "[parameters('AzureRegion')]",
+        "metadata": {
+          "displayName": "Resource Group for Alert Groups and Alerts"
+        },
+        "dependsOn": []
+      }
+    },
+    "blueprintName": "Valto-Alerts"
+  }
+}

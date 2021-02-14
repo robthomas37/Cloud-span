@@ -2,7 +2,7 @@
 <br />
 <p align="left">
   <a href="https://github.com/robthomas37/Cloud-span/tree/master/Azure%20Lighthouse">
-    <img src="Images/logo.png" alt="Logo" width="1081" height="470">
+    <img src="Images/logo.png" alt="Logo" width="682" height="222">
   </a>
 
 

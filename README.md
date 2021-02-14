@@ -1,4 +1,12 @@
-## Welcome to GitHub Pages
+<!-- PROJECT LOGO -->
+<br />
+<p align="left">
+  <a href="https://github.com/robthomas37/Cloud-span/tree/master/Azure%20Lighthouse">
+    <img src="Images/logo.png" alt="Logo" width="1081" height="470">
+  </a>
+
+
+# Welcome to Cloud-Span GitHub Pages
 
 You can use the [editor on GitHub](https://github.com/robthomas37/Cloud-span/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 

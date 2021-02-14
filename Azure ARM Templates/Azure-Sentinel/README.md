@@ -2,7 +2,7 @@
 # Deploy Azure Sentinel
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Frobthomas37%2FCloud-span%2Fmaster%2FAzure%20ARM%20Templates%2FAzure-Sentinel%2Fazuredeploy.json" target="_blank">
-    <img src="https://aka.ms/deploytoazurebutton"/>"/>
+    <img src="https://aka.ms/deploytoazurebutton"/>
 </a>
 
 This template allows you to deploy Azure Sentinel to a new Log Analytics workspace or an existing one.

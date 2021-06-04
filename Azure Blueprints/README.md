@@ -247,15 +247,6 @@ You can also use the `New-AzBlueprintArtifact` cmdlet to convert a standard ARM 
 New-AzBlueprintArtifact -Type TemplateArtifact -Name storage-account -Blueprint $bp -TemplateFile C:\StorageAccountArmTemplate.json -ResourceGroup "storageRG" -TemplateParameterFile "C:\StorageAccountParams.json"
 ```
 
-#### How blueprint parameters display during assignment in the Azure Portal
-When you assign a blueprint in the Azure Portal, the parameters will be diplayed according to how they are referenced. If a parameter is used by multiple artifacts, it will be displayed as a blueprint parameter. Like this:
-
-![Image of blueprint parameters](./z_misc-files/images/bp-params.PNG)
-
-If it is used by a single artifact, it will be displayed only in the context of that artifact, like so:
-
-![Image of artifact parameters](./z_misc-files/images/artifact-params.PNG)
-
 ### Passing values between artifacts
 There are many reasons you may want or need to pass the output from one artifact as the input to another artifact that is deployed later in the blueprint assignment sequence. If so, you can make use of the ```artifacts()``` function which lets you reference the details of a particular artifact.
 
@@ -332,18 +323,3 @@ You might run into some issues. Here are some common ones:
 ## Next steps
 From here you will need to [publish the blueprint](https://docs.microsoft.com/en-us/azure/governance/blueprints/create-blueprint-portal#publish-a-blueprint) and then [assign the blueprint](https://docs.microsoft.com/en-us/azure/governance/blueprints/create-blueprint-portal#assign-a-blueprint) which you can do with either the azure portal or the rest API.
 
-Let us know in the comments if you have any issues!
-
-## Contributing
-
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
-
-When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.

@@ -1,0 +1,193 @@
+{
+  "properties": {
+    "displayName": "Valto-IaaS-Infrastructure",
+    "description": "Base Infrastructure for an IaaS Deployment",
+    "targetScope": "subscription",
+    "parameters": {
+      "microsoftIaaSAntimalwareextensionshouldbedeployedonWindowsservers_effect": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Effect (Policy: Microsoft IaaSAntimalware extension should be deployed on Windows servers)"
+        },
+        "defaultValue": "AuditIfNotExists",
+        "allowedValues": [
+          "AuditIfNotExists",
+          "Disabled"
+        ]
+      },
+      "regionAbbr": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Regional Abbreviation",
+          "description": "3 letter abbreviation for target region (e.g. WEU for West Europe, UKS for UK South)."
+        },
+        "defaultValue": "uks"
+      },
+      "deployHubNetwork_AzureFirewallSubnetPrefix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "AzureFirewallSubnetPrefix (Deploy Hub Network)",
+          "description": "Prefix for the Azure Firewall Subnet (first /25 in VNET Address Space)"
+        },
+        "allowedValues": []
+      },
+      "deployHubNetwork_GatewaySubnetPrefix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "GatewaySubnetPrefix (Deploy Hub Network)",
+          "description": "Prefix for the Gateway Subnet (/27 immediately following Azure Firewall Subnet)"
+        },
+        "allowedValues": []
+      },
+      "deployHubNetwork_ManagementSubnetPrefix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "ManagementSubnetPrefix (Deploy Hub Network)",
+          "description": "Prefix for the Management Subnet (/27 immediately following the NVA Subnet)"
+        },
+        "allowedValues": []
+      },
+      "deployHubNetwork_vpnGwSku": {
+        "type": "string",
+        "metadata": {
+          "displayName": "vpnGwSku (Deploy Hub Network)",
+          "description": "The VPN Gateway SKU (if one is being deployed)."
+        },
+        "defaultValue": "Basic",
+        "allowedValues": [
+          "Basic",
+          "VpnGw1",
+          "VpnGw2",
+          "VpnGw3"
+        ]
+      },
+      "deployHubNetwork_deployExprGw": {
+        "type": "bool",
+        "metadata": {
+          "displayName": "deployExprGw (Deploy Hub Network)",
+          "description": "Should an ExpressRoute Gateway be deployed (the default is false)."
+        },
+        "defaultValue": false,
+        "allowedValues": [
+          false,
+          true
+        ]
+      },
+      "deployHubNetwork_vNetAddressPrefix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "vNetAddressPrefix (Deploy Hub Network)"
+        },
+        "allowedValues": []
+      },
+      "deployHubNetwork_exprGwSku": {
+        "type": "string",
+        "metadata": {
+          "displayName": "exprGwSku (Deploy Hub Network)",
+          "description": "The ExpressRoute Gateway SKU (if one is being deployed)."
+        },
+        "defaultValue": "Standard",
+        "allowedValues": [
+          "Standard",
+          "HighPerformance",
+          "UltraPerformance"
+        ]
+      },
+      "deploySpokeNetwork_spokeVnetNameSuffix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Spoke VNET Name Suffix",
+          "description": "Naming suffix for the spoke network (e.g. the customer name or VNET purpose)"
+        }
+      },
+      "deploySpokeNetwork_spokeVnetPrefix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Spoke VNET Address Prefix",
+          "description": "Address prefix for the spoke network (e.g. 192.168.200.0/24)"
+        }
+      },
+      "deploySpokeNetwork_spokeVnetsubnet1Name": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Spoke VNET - Subnet 1 Name",
+          "description": "Name of the subnet deployed to the Spoke VNET (e.g. 'LAN' or 'Servers' or the application name)"
+        }
+      },
+      "deploySpokeNetwork_spokeVnetsubnet1AddressPrefix": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Spoke VNET - Subnet 1 Address Prefix",
+          "description": "Address prefix of the subnet deployed to the Spoke VNET (e.g. 192.168.200.0/25)"
+        }
+      },
+      "deployManagementJumpboxVM_SKU": {
+        "type": "string",
+        "metadata": {
+          "description": "2016-Datacenter or 2019-Datacenter for Management/Jumpbox VM"
+        },
+        "defaultValue": "2016-Datacenter",
+        "allowedValues": [
+          "2016-Datacenter",
+          "2019-Datacenter"
+        ]
+      },
+      "deployManagementJumpboxVM_Name": {
+        "type": "string",
+        "metadata": {
+          "description": "Name of the Management/Jumpbox VM (e.g. tri-uks-mgmt01 or eur-az-mgmt01)"
+        }
+      },
+      "deployManagementJumpboxVM_adminPassword": {
+        "type": "string",
+        "metadata": {
+          "description": "Password for the 6dgsupport account on the VM"
+        }
+      },
+      "AzureRegion": {
+        "type": "string",
+        "metadata": {
+          "displayName": "Select the Azure Region to deploy the Resources",
+          "description": "AzureRegion",
+          "strongType": "location"
+        },
+        "defaultValue": "uksouth",
+        "allowedValues": [
+          "uksouth",
+          "ukwest",
+          "westeurope",
+          "northeurope",
+          "eastus",
+          "eastus2"
+        ]
+      }
+    },
+    "resourceGroups": {
+      "ManagementServices-RG": {
+        "name": "[concat('rg-', parameters('regionAbbr'), '-managementservices')]",
+        "location": "[parameters('AzureRegion')]",
+        "metadata": {
+          "displayName": "Resource Group for Per-Region Management Resources"
+        },
+        "dependsOn": []
+      },
+      "ManagementVM-RG": {
+        "name": "[concat('rg-', parameters('regionAbbr'), '-mgmtvm')]",
+        "location": "[parameters('AzureRegion')]",
+        "metadata": {
+          "displayName": "Resource Group for Per-Region Management/Jumpbox VM"
+        },
+        "dependsOn": []
+      },
+      "Network-RG": {
+        "name": "[concat('rg-', parameters('regionAbbr'), '-network')]",
+        "location": "[parameters('AzureRegion')]",
+        "metadata": {
+          "displayName": "Resource Group for Per-Region Networks"
+        },
+        "dependsOn": []
+      }
+    },
+    "blueprintName": "Valto-IaaS-Infrastructure"
+  }
+}

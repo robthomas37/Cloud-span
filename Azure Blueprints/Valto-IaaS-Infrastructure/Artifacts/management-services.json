@@ -1,0 +1,778 @@
+{
+  "kind": "template",
+  "properties": {
+    "displayName": "Deploy Log Analytics, Azure Automation, Key Vault, Recovery Services Vault, Diagnostics Storage Account",
+    "description": "Log Analytics, Azure Automation, Key Vault, Recovery Services Vault, Diagnostics Storage Account",
+    "dependsOn": [],
+    "template": {
+      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+      "contentVersion": "2.0.0.0",
+      "parameters": {
+        "regionAbbr": {
+          "type": "string",
+          "metadata": {
+            "description": "3 letter abbreviation for target region (e.g. WEU for West Europe, UKS for UK South)."
+          }
+        },
+        "automationAccountNameSuffix": {
+          "type": "string",
+          "defaultValue": "acc01",
+          "metadata": {
+            "description": "description"
+          }
+        },
+        "rsvNameSuffix": {
+          "type": "string",
+          "defaultValue": "vault01",
+          "metadata": {
+            "description": "description"
+          }
+        }
+      },
+      "variables": {
+        "recoveryServicesVaultName": "[concat('rsv-', parameters('regionAbbr'),'-', parameters('rsvNameSuffix'))]",
+        "automationAccountName": "[concat('auto-', parameters('regionAbbr'),'-', parameters('automationAccountNameSuffix'))]",
+        "workspaceName": "[concat('log-gen-', uniqueString(subscription().subscriptionId, resourceGroup().id))]",
+        "diagStorAccName": "[concat('stordiags',uniqueString(subscription().subscriptionId, resourceGroup().id))]",
+        "skuTier": "Standard",
+        "skuName": "Standard",
+        "keyVaultName": "[concat('kv-', parameters('regionAbbr'), '-', uniqueString(subscription().subscriptionId, resourceGroup().id))]"
+      },
+      "resources": [
+        {
+          "type": "Microsoft.OperationalInsights/workspaces",
+          "name": "[variables('workspaceName')]",
+          "apiVersion": "2015-11-01-preview",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "sku": {
+              "Name": "PerGB2018"
+            },
+            "retentionInDays": 180
+          }
+        },
+        {
+          "type": "Microsoft.Automation/automationAccounts",
+          "apiVersion": "2015-01-01-preview",
+          "name": "[variables('automationAccountName')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "tags": {},
+          "properties": {
+            "sku": {
+              "name": "Basic"
+            }
+          },
+          "resources": [
+            {
+              "type": "runbooks",
+              "apiVersion": "2015-01-01-preview",
+              "name": "Update-AutomationAzureModulesForAccount.ps1",
+              "location": "[resourceGroup().location]",
+              "dependsOn": [
+                "[concat('Microsoft.Automation/automationAccounts/', variables('automationAccountName'))]"
+              ],
+              "tags": {},
+              "properties": {
+                "runbookType": "PowerShell",
+                "logProgress": "false",
+                "logVerbose": "false",
+                "description": "Update Automation Azure Modules",
+                "publishContentLink": {
+                  "uri": "https://raw.githubusercontent.com/microsoft/AzureAutomation-Account-Modules-Update/master/Update-AutomationAzureModulesForAccount.ps1",
+                  "version": "1.0.0.0"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.OperationsManagement/solutions",
+              "apiVersion": "2015-11-01-preview",
+              "name": "[concat('Updates(', variables('workspacename'), ')')]",
+              "location": "[resourceGroup().location]",
+              "dependsOn": [
+                "[concat('Microsoft.Automation/automationAccounts/', variables('automationAccountName'))]"
+              ],
+              "plan": {
+                "name": "[concat('Updates(', variables('workspacename'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/Updates",
+                "publisher": "Microsoft"
+              },
+              "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
+                "containedResources": [
+                  "[concat(resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '/views/', 'Updates(', variables('workspacename'), ')')]"
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.OperationsManagement/solutions",
+              "apiVersion": "2015-11-01-preview",
+              "name": "[concat('ChangeTracking(', variables('workspacename'), ')')]",
+              "location": "[resourceGroup().location]",
+              "dependsOn": [
+                "[concat('Microsoft.Automation/automationAccounts/', variables('automationAccountName'))]"
+              ],
+              "plan": {
+                "name": "[concat('ChangeTracking(', variables('workspacename'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/ChangeTracking",
+                "publisher": "Microsoft"
+              },
+              "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
+                "containedResources": [
+                  "[concat(resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '/views/', 'Updates(', variables('workspacename'), ')')]"
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.OperationalInsights/workspaces/linkedServices",
+              "apiVersion": "2015-11-01-preview",
+              "name": "[concat(variables('workspaceName'), '/' , 'Automation')]",
+              "location": "[resourceGroup().location]",
+              "dependsOn": [
+                "[concat('Microsoft.Automation/automationAccounts/', variables('automationAccountName'))]"
+              ],
+              "properties": {
+                "resourceId": "[concat(resourceGroup().id, '/providers/Microsoft.Automation/automationAccounts/', variables('automationAccountName'))]"
+              }
+            },
+            {
+              "type": "Microsoft.Automation/automationAccounts/providers/diagnosticsettings",
+              "name": "[concat(variables('automationAccountName'), '/Microsoft.Insights/service')]",
+              "apiVersion": "2016-09-01",
+              "location": "[resourceGroup().location]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Automation/automationAccounts', variables('automationAccountName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName'))]"
+              ],
+              "properties": {
+                "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName'))]",
+                "workspaceId": "[resourceId('microsoft.operationalinsights/workspaces/', variables('workspaceName'))]",
+                "logs": [
+                  {
+                    "category": "JobLogs",
+                    "enabled": true,
+                    "retentionPolicy": {
+                      "enabled": true,
+                      "days": "14"
+                    }
+                  },
+                  {
+                    "category": "JobStreams",
+                    "enabled": true,
+                    "retentionPolicy": {
+                      "enabled": true,
+                      "days": "14"
+                    }
+                  },
+                  {
+                    "category": "DscNodeStatus",
+                    "enabled": true,
+                    "retentionPolicy": {
+                      "enabled": true,
+                      "days": "14"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "Microsoft.OperationsManagement/solutions",
+          "apiVersion": "2015-11-01-preview",
+          "name": "[concat('VMInsights(', variables('workspacename'), ')')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "plan": {
+            "name": "[concat('VMInsights(', variables('workspacename'), ')')]",
+            "promotionCode": "",
+            "product": "OMSGallery/VMInsights",
+            "publisher": "Microsoft"
+          },
+          "properties": {
+            "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
+            "containedResources": []
+          }
+        },
+        {
+          "type": "Microsoft.OperationsManagement/solutions",
+          "apiVersion": "2015-11-01-preview",
+          "name": "[concat('ADReplication(', variables('workspacename'), ')')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "plan": {
+            "name": "[concat('ADReplication(', variables('workspacename'), ')')]",
+            "promotionCode": "",
+            "product": "OMSGallery/ADReplication",
+            "publisher": "Microsoft"
+          },
+          "properties": {
+            "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
+            "containedResources": [
+              "[concat(resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '/views/', 'ADReplication(', variables('workspacename'), ')')]"
+            ]
+          }
+        },
+        {
+          "type": "Microsoft.OperationsManagement/solutions",
+          "apiVersion": "2015-11-01-preview",
+          "name": "[concat('ADAssessment(', variables('workspacename'), ')')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "plan": {
+            "name": "[concat('ADAssessment(', variables('workspacename'), ')')]",
+            "promotionCode": "",
+            "product": "OMSGallery/ADAssessment",
+            "publisher": "Microsoft"
+          },
+          "properties": {
+            "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
+            "containedResources": [
+              "[concat(resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '/views/', 'ADAssessment(', variables('workspacename'), ')')]"
+            ]
+          }
+        },
+        {
+          "type": "Microsoft.RecoveryServices/vaults",
+          "apiVersion": "2018-01-10",
+          "name": "[variables('recoveryServicesVaultName')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "sku": {
+            "name": "[variables('skuName')]",
+            "tier": "[variables('skuTier')]"
+          },
+          "properties": {}
+        },
+        {
+          "type": "Microsoft.Storage/storageAccounts",
+          "apiVersion": "2018-07-01",
+          "name": "[variables('diagStorAccName')]",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "displayName": "[variables('diagStorAccName')]"
+          },
+          "sku": {
+            "name": "Standard_LRS"
+          },
+          "kind": "Storagev2",
+          "properties": {
+            "networkAcls": {
+              "bypass": "ValtoSupport",
+              "virtualNetworkRules": [],
+              "ipRules": [
+                {
+                  "value": "20.77.103.66",
+                  "action": "Allow"
+                }
+              ],
+              "defaultAction": "Deny"
+            },
+            "supportsHttpsTrafficOnly": true,
+            "encryption": {
+              "services": {
+                "file": {
+                  "enabled": true
+                },
+                "blob": {
+                  "enabled": true
+                }
+              },
+              "keySource": "Microsoft.Storage"
+            },
+            "accessTier": "Hot"
+          }
+        },
+        {
+          "type": "Microsoft.RecoveryServices/vaults/backupPolicies",
+          "name": "[concat(variables('recoveryServicesVaultName'), '/Valto-VM-Daily-StandardRetention')]",
+          "apiVersion": "2016-12-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.RecoveryServices/vaults/', variables('recoveryServicesVaultName'))]"
+          ],
+          "properties": {
+            "backupManagementType": "AzureIaasVM",
+            "schedulePolicy": {
+              "scheduleRunFrequency": "Daily",
+              "scheduleRunDays": null,
+              "scheduleRunTimes": [
+                "2019-02-28T23:00:00Z"
+              ],
+              "schedulePolicyType": "SimpleSchedulePolicy"
+            },
+            "retentionPolicy": {
+              "dailySchedule": {
+                "retentionTimes": [
+                  "2019-02-28T23:00:00Z"
+                ],
+                "retentionDuration": {
+                  "count": 30,
+                  "durationType": "Days"
+                }
+              },
+              "weeklySchedule": null,
+              "monthlySchedule": null,
+              "yearlySchedule": null,
+              "retentionPolicyType": "LongTermRetentionPolicy"
+            },
+            "timeZone": "UTC",
+            "instantRpRetentionRangeInDays": 5
+          }
+        },
+        {
+          "type": "Microsoft.RecoveryServices/vaults/backupPolicies",
+          "name": "[concat(variables('recoveryServicesVaultName'), '/Valto-VM-Daily-ExtendedRetention')]",
+          "apiVersion": "2016-12-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.RecoveryServices/vaults/', variables('recoveryServicesVaultName'))]"
+          ],
+          "properties": {
+            "backupManagementType": "AzureIaasVM",
+            "schedulePolicy": {
+              "scheduleRunFrequency": "Daily",
+              "scheduleRunDays": null,
+              "scheduleRunTimes": [
+                "2019-02-28T23:00:00Z"
+              ],
+              "schedulePolicyType": "SimpleSchedulePolicy"
+            },
+            "retentionPolicy": {
+              "dailySchedule": {
+                "retentionTimes": [
+                  "2019-02-28T23:00:00Z"
+                ],
+                "retentionDuration": {
+                  "count": 30,
+                  "durationType": "Days"
+                }
+              },
+              "weeklySchedule": {
+                "daysOfTheWeek": [
+                  "Sunday"
+                ],
+                "retentionTimes": [
+                  "2019-02-28T23:00:00Z"
+                ],
+                "retentionDuration": {
+                  "count": 4,
+                  "durationType": "Weeks"
+                }
+              },
+              "monthlySchedule": {
+                "retentionScheduleFormatType": "Weekly",
+                "retentionScheduleDaily": null,
+                "retentionScheduleWeekly": {
+                  "daysOfTheWeek": [
+                    "Sunday"
+                  ],
+                  "weeksOfTheMonth": [
+                    "First"
+                  ]
+                },
+                "retentionTimes": [
+                  "2019-02-28T23:00:00Z"
+                ],
+                "retentionDuration": {
+                  "count": 12,
+                  "durationType": "Months"
+                }
+              },
+              "yearlySchedule": null,
+              "retentionPolicyType": "LongTermRetentionPolicy"
+            },
+            "timeZone": "UTC",
+            "instantRpRetentionRangeInDays": 5
+          }
+        },
+        {
+          "type": "Microsoft.RecoveryServices/vaults/backupPolicies",
+          "apiVersion": "2016-12-01",
+          "name": "[concat(variables('recoveryServicesVaultName'), '/Valto-SQL-Daily-StandardRetention')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.RecoveryServices/vaults/', variables('recoveryServicesVaultName'))]"
+          ],
+          "properties": {
+            "backupManagementType": "AzureWorkload",
+            "workLoadType": "SQLDataBase",
+            "settings": {
+              "timeZone": "UTC",
+              "issqlcompression": true,
+              "isCompression": true
+            },
+            "subProtectionPolicy": [
+              {
+                "policyType": "Full",
+                "schedulePolicy": {
+                  "schedulePolicyType": "SimpleSchedulePolicy",
+                  "scheduleRunFrequency": "Daily",
+                  "scheduleRunTimes": [
+                    "2020-10-03T23:00:00Z"
+                  ],
+                  "scheduleWeeklyFrequency": 0
+                },
+                "retentionPolicy": {
+                  "retentionPolicyType": "LongTermRetentionPolicy",
+                  "dailySchedule": {
+                    "retentionTimes": [
+                      "2020-10-03T23:00:00Z"
+                    ],
+                    "retentionDuration": {
+                      "count": 30,
+                      "durationType": "Days"
+                    }
+                  },
+                  "weeklySchedule": null,
+                  "monthlySchedule": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Microsoft.RecoveryServices/vaults/backupPolicies",
+          "apiVersion": "2016-12-01",
+          "name": "[concat(variables('recoveryServicesVaultName'), '/Valto-SQL-Daily-ExtendedRetention')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.RecoveryServices/vaults/', variables('recoveryServicesVaultName'))]"
+          ],
+          "properties": {
+            "backupManagementType": "AzureWorkload",
+            "workLoadType": "SQLDataBase",
+            "settings": {
+              "timeZone": "UTC",
+              "issqlcompression": true,
+              "isCompression": true
+            },
+            "subProtectionPolicy": [
+              {
+                "policyType": "Full",
+                "schedulePolicy": {
+                  "schedulePolicyType": "SimpleSchedulePolicy",
+                  "scheduleRunFrequency": "Daily",
+                  "scheduleRunTimes": [
+                    "2020-10-03T23:00:00Z"
+                  ],
+                  "scheduleWeeklyFrequency": 0
+                },
+                "retentionPolicy": {
+                  "retentionPolicyType": "LongTermRetentionPolicy",
+                  "dailySchedule": {
+                    "retentionTimes": [
+                      "2020-10-03T23:00:00Z"
+                    ],
+                    "retentionDuration": {
+                      "count": 14,
+                      "durationType": "Days"
+                    }
+                  },
+                  "weeklySchedule": {
+                    "daysOfTheWeek": [
+                      "Sunday"
+                    ],
+                    "retentionTimes": [
+                      "2020-10-03T23:00:00Z"
+                    ],
+                    "retentionDuration": {
+                      "count": 8,
+                      "durationType": "Weeks"
+                    }
+                  },
+                  "monthlySchedule": {
+                    "retentionScheduleFormatType": "Weekly",
+                    "retentionScheduleWeekly": {
+                      "daysOfTheWeek": [
+                        "Sunday"
+                      ],
+                      "weeksOfTheMonth": [
+                        "First"
+                      ]
+                    },
+                    "retentionTimes": [
+                      "2020-10-03T23:00:00Z"
+                    ],
+                    "retentionDuration": {
+                      "count": 12,
+                      "durationType": "Months"
+                    }
+                  }
+                }
+              },
+              {
+                "policyType": "Log",
+                "schedulePolicy": {
+                  "schedulePolicyType": "LogSchedulePolicy",
+                  "scheduleFrequencyInMins": 120
+                },
+                "retentionPolicy": {
+                  "retentionPolicyType": "SimpleRetentionPolicy",
+                  "retentionDuration": {
+                    "count": 7,
+                    "durationType": "Days"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Microsoft.RecoveryServices/vaults/providers/diagnosticSettings",
+          "name": "[concat(variables('recoveryServicesVaultName'), '/microsoft.insights/recovery-diag-settings')]",
+          "apiVersion": "2017-05-01-preview",
+          "properties": {
+            "name": "[variables('workspaceName')]",
+            "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts/', variables('diagStorAccName'))]",
+            "workspaceId": "[resourceId('microsoft.operationalinsights/workspaces/', variables('workspaceName'))]",
+            "logs": [
+              {
+                "category": "AzureSiteRecoveryJobs",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 14,
+                  "enabled": true
+                }
+              },
+              {
+                "category": "AzureSiteRecoveryEvents",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 14,
+                  "enabled": true
+                }
+              },
+              {
+                "category": "AzureSiteRecoveryReplicatedItems",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 14,
+                  "enabled": true
+                }
+              },
+              {
+                "category": "AzureSiteRecoveryReplicationStats",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 14,
+                  "enabled": true
+                }
+              },
+              {
+                "category": "AzureSiteRecoveryRecoveryPoints",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 14,
+                  "enabled": true
+                }
+              },
+              {
+                "category": "AzureSiteRecoveryReplicationDataUploadRate",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 14,
+                  "enabled": true
+                }
+              },
+              {
+                "category": "AzureSiteRecoveryProtectedDiskDataChurn",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 14,
+                  "enabled": true
+                }
+              }
+            ],
+            "metrics": []
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.RecoveryServices/vaults/', variables('recoveryServicesVaultName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts/', variables('diagStorAccName'))]"
+          ]
+        },
+        {
+          "type": "Microsoft.RecoveryServices/vaults/providers/diagnosticSettings",
+          "name": "[concat(variables('recoveryServicesVaultName'), '/microsoft.insights/backup-diag-settings')]",
+          "apiVersion": "2017-05-01-preview",
+          "properties": {
+            "name": "[variables('workspaceName')]",
+            "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts/', variables('diagStorAccName'))]",
+            "workspaceId": "[resourceId('microsoft.operationalinsights/workspaces/', variables('workspaceName'))]",
+            "logs": [
+              {
+                "category": "AzureBackupReport",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 14,
+                  "enabled": true
+                }
+              }
+            ],
+            "metrics": []
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.RecoveryServices/vaults/', variables('recoveryServicesVaultName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts/', variables('diagStorAccName'))]"
+          ]
+        },
+        {
+          "type": "Microsoft.KeyVault/vaults",
+          "apiVersion": "2016-10-01",
+          "name": "[variables('keyVaultName')]",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "sku": {
+              "family": "A",
+              "name": "Standard"
+            },
+            "tenantId": "[subscription().tenantId]",
+            "accessPolicies": [
+              {
+                "tenantId": "[subscription().tenantId]",
+                "objectId": "d17b1097-3824-40f3-ae2e-9bf2c36c7caf",
+                "permissions": {
+                  "keys": [
+                    "Get",
+                    "List",
+                    "Update",
+                    "Create",
+                    "Import",
+                    "Delete",
+                    "Recover",
+                    "Backup",
+                    "Restore"
+                  ],
+                  "secrets": [
+                    "Get",
+                    "List",
+                    "Set",
+                    "Delete",
+                    "Recover",
+                    "Backup",
+                    "Restore"
+                  ],
+                  "certificates": [
+                    "Get",
+                    "List",
+                    "Update",
+                    "Create",
+                    "Import",
+                    "Delete",
+                    "Recover",
+                    "Backup",
+                    "Restore",
+                    "ManageContacts",
+                    "ManageIssuers",
+                    "GetIssuers",
+                    "ListIssuers",
+                    "SetIssuers",
+                    "DeleteIssuers"
+                  ]
+                }
+              }
+            ],
+            "enabledForDeployment": true,
+            "enabledForDiskEncryption": true,
+            "enabledForTemplateDeployment": true,
+            "enableSoftDelete": true,
+            "enablePurgeProtection": true
+          }
+        },
+        {
+          "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
+          "name": "[concat(variables('keyVaultName'), '/Microsoft.Insights/service')]",
+          "apiVersion": "2016-09-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName'))]"
+          ],
+          "properties": {
+            "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName'))]",
+            "workspaceId": "[resourceId('microsoft.operationalinsights/workspaces/', variables('workspaceName'))]",
+            "logs": [
+              {
+                "category": "AuditEvent",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "365"
+                }
+              }
+            ],
+            "metrics": [
+              {
+                "category": "AllMetrics",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "365"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "outputs": {
+        "recoveryServicesVaultName": {
+          "type": "string",
+          "value": "[variables('recoveryServicesVaultName')]"
+        },
+        "recoveryServicesVaultResourceId": {
+          "type": "string",
+          "value": "[resourceId('Microsoft.RecoveryServices/vaults/', variables('recoveryServicesVaultName'))]"
+        },
+        "automationAccountName": {
+          "type": "string",
+          "value": "[variables('automationAccountName')]"
+        },
+        "automationAccountResourceId": {
+          "type": "string",
+          "value": "[resourceId('Microsoft.Automation/automationAccounts', variables('automationAccountName'))]"
+        },
+        "logAnalyticsWorkspaceName": {
+          "type": "string",
+          "value": "[variables('workspaceName')]"
+        },
+        "logAnalyticsWorkspaceResourceId": {
+          "type": "string",
+          "value": "[resourceId('microsoft.operationalinsights/workspaces/', variables('workspaceName'))]"
+        },
+        "keyVaultName": {
+          "type": "string",
+          "value": "[variables('keyVaultName')]"
+        },
+        "keyVaultResourceId": {
+          "type": "string",
+          "value": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+        },
+        "sharedServicesResourceGroupName": {
+          "type": "string",
+          "value": "[resourceGroup().name]"
+        }
+      }
+    },
+    "resourceGroup": "ManagementServices-RG",
+    "parameters": {
+      "automationAccountNameSuffix": {
+        "value": "acc01"
+      },
+      "rsvNameSuffix": {
+        "value": "vault01"
+      },
+      "regionAbbr": {
+        "value": "[parameters('regionAbbr')]"
+      }
+    }
+  }
+}

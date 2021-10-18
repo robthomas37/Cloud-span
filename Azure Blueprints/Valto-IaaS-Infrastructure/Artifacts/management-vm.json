@@ -1,0 +1,432 @@
+{
+  "kind": "template",
+  "properties": {
+    "displayName": "Deploy Management Jumpbox VM",
+    "description": "",
+    "dependsOn": [
+      "hub-network",
+      "spoke-network",
+      "management-services"
+    ],
+    "template": {
+      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "regionAbbr": {
+          "type": "string",
+          "metadata": {
+            "description": "3 letter abbreviation for target region (e.g. WEU for West Europe, UKS for UK South)."
+          }
+        },
+        "vmname": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          },
+          "defaultvalue": "[concat('6dg', parameters('regionAbbr'), 'mgmt01')]"
+        },
+        "sku": {
+          "type": "string",
+          "metadata": {
+            "description": "2016-Datacenter is the default.  Could use 2019-Datacenter."
+          }
+        },
+        "adminPassword": {
+          "type": "string",
+          "metadata": {
+            "description": "VM Admin Password"
+          }
+        },
+        "workspaceId": {
+          "type": "string",
+          "metadata": {
+            "description": "ID of the Log Analytics Workspace the VM will be connected to."
+          }
+        },
+        "virtualNetworkName": {
+          "type": "string",
+          "metadata": {
+            "description": "VNET Name"
+          }
+        },
+        "virtualNetworkResourceGroup": {
+          "type": "string",
+          "metadata": {
+            "description": "Resource Group VNET is deployed in"
+          }
+        },
+        "omsWorkspaceResourceGroup": {
+          "type": "string",
+          "metadata": {
+            "description": "Resource Group containing the Log Analytics Workspace"
+          }
+        },
+        "omsWorkspaceName": {
+          "type": "string",
+          "metadata": {
+            "description": "Name of the Log Analytics Workspace"
+          }
+        },
+        "keyVaultResourceGroup": {
+          "type": "string",
+          "metadata": {
+            "description": "Resource Group containing the Key Vault for storing disk encryption keys (likely the Shared Services Resource Group)"
+          }
+        },
+        "keyVaultName": {
+          "type": "string",
+          "metadata": {
+            "description": "Name of the Key Vault where the disk encryption keys are stored"
+          }
+        },
+        "backupRsv": {
+          "type": "string",
+          "metadata": {
+            "description": "Name of the Recovery Services Vault for Backups"
+          }
+        },
+        "backupRsvResourceGroup": {
+          "type": "string",
+          "metadata": {
+            "description": "Resource Group containing the Recovery Services Vault for Backups"
+          }
+        }
+      },
+      "variables": {
+        "backupPolicy": "Valto-VM-Daily-StandardRetention",
+        "diagStorAccName": "[concat('stordiags',uniqueString(subscription().subscriptionId, resourceGroup().id))]",
+        "nicName": "[concat(parameters('vmName'), '_nic0')]",
+        "vnetID": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/Management')]"
+      },
+      "resources": [
+        {
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+          ],
+          "apiVersion": "2017-05-10",
+          "name": "[concat(parameters('vmName'), '-' , 'Backup')]",
+          "type": "Microsoft.Resources/deployments",
+          "resourceGroup": "[parameters('backupRsvResourceGroup')]",
+          "properties": {
+            "mode": "Incremental",
+            "template": {
+              "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+              "contentVersion": "1.0.0.0",
+              "resources": [
+                {
+                  "name": "[concat(parameters('backupRsv'), '/', 'Azure', '/vm;iaasvmcontainerv2;', resourceGroup().name, ';', parameters('vmname'))]",
+                  "apiVersion": "2017-07-01",
+                  "type": "Microsoft.RecoveryServices/vaults/backupFabrics/backupProtectionIntent",
+                  "properties": {
+                    "friendlyName": "[concat(parameters('vmname'), 'BackupIntent')]",
+                    "protectionIntentItemType": "AzureResourceItem",
+                    "policyId": "[resourceId(parameters('backupRsvResourceGroup'), 'Microsoft.RecoveryServices/vaults/backupPolicies', parameters('backupRsv'), variables('backupPolicy'))]",
+                    "sourceResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Compute/virtualMachines', parameters('vmname'))]"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "apiVersion": "2019-02-01",
+          "type": "Microsoft.Network/publicIpAddresses",
+          "name": "[concat('pip-', parameters('vmname'))]",
+          "location": "[resourceGroup().location]",
+          "sku": {
+            "name": "Standard"
+          },
+          "properties": {
+            "publicIPAllocationMethod": "Static"
+          }
+        },
+        {
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(parameters('vmName'), '/Microsoft.EnterpriseCloud.Monitoring')]",
+          "apiVersion": "2019-03-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]",
+            "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('vmName'), 'Microsoft.Insights.VMDiagnosticsSettings')]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+            "type": "MicrosoftMonitoringAgent",
+            "typeHandlerVersion": "1.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "workspaceId": "[reference(resourceId(parameters('omsWorkspaceResourceGroup'), 'microsoft.operationalinsights/workspaces/', parameters('omsWorkspaceName')), '2015-03-20').customerId]"
+            },
+            "protectedSettings": {
+              "workspaceKey": "[listKeys(resourceId(parameters('omsWorkspaceResourceGroup'), 'microsoft.operationalinsights/workspaces/', parameters('omsWorkspaceName')), '2015-11-01-preview').primarySharedKey]"
+            }
+          }
+        },
+        {
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(parameters('vmName'),'/', '/IaaSAntimalware')]",
+          "apiVersion": "2015-05-01-preview",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]",
+            "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('vmName'), 'DAExtension')]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Azure.Security",
+            "type": "IaaSAntimalware",
+            "typeHandlerVersion": "1.3",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "AntimalwareEnabled": "true",
+              "Exclusions": {
+                "Paths": "",
+                "Extensions": "",
+                "Processes": ""
+              },
+              "RealtimeProtectionEnabled": "true",
+              "ScheduledScanSettings": {
+                "isEnabled": "true",
+                "scanType": "Quick",
+                "day": "7",
+                "time": "120"
+              }
+            },
+            "protectedSettings": null
+          }
+        },
+        {
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(parameters('vmName'),'/AzureDiskEncryption')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]",
+            "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('vmName'), 'IaaSAntimalware')]"
+          ],
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2017-03-30",
+          "properties": {
+            "publisher": "Microsoft.Azure.Security",
+            "type": "AzureDiskEncryption",
+            "typeHandlerVersion": "2.2",
+            "autoUpgradeMinorVersion": true,
+            "forceUpdateTag": "1.0",
+            "settings": {
+              "EncryptionOperation": "EnableEncryption",
+              "KeyVaultURL": "[reference(resourceId(parameters('keyVaultResourceGroup'), 'Microsoft.KeyVault/vaults/', parameters('keyVaultName')),'2016-10-01').vaultUri]",
+              "KeyVaultResourceId": "[resourceId(parameters('keyVaultResourceGroup'), 'Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]",
+              "KeyEncryptionKeyURL": "",
+              "KekVaultResourceId": "[resourceId(parameters('keyVaultResourceGroup'), 'Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]",
+              "KeyEncryptionAlgorithm": "RSA-OAEP",
+              "VolumeType": "All",
+              "ResizeOSDisk": false
+            }
+          }
+        },
+        {
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "apiVersion": "2019-03-01",
+          "name": "[concat(parameters('vmName'), '/Microsoft.Insights.VMDiagnosticsSettings')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+          ],
+          "properties": {
+            "autoUpgradeMinorVersion": true,
+            "publisher": "Microsoft.Azure.Diagnostics",
+            "type": "IaaSDiagnostics",
+            "typeHandlerVersion": "1.5",
+            "settings": {
+              "StorageAccount": "[variables('diagStorAccName')]",
+              "xmlCfg": "PFdhZENmZz4gPERpYWdub3N0aWNNb25pdG9yQ29uZmlndXJhdGlvbiBvdmVyYWxsUXVvdGFJbk1CPSI0MDk2IiB4bWxucz0iaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS9TZXJ2aWNlSG9zdGluZy8yMDEwLzEwL0RpYWdub3N0aWNzQ29uZmlndXJhdGlvbiI+IDxEaWFnbm9zdGljSW5mcmFzdHJ1Y3R1cmVMb2dzIHNjaGVkdWxlZFRyYW5zZmVyTG9nTGV2ZWxGaWx0ZXI9IkVycm9yIiBzY2hlZHVsZWRUcmFuc2ZlclBlcmlvZD0iUFQxTSIvPiA8V2luZG93c0V2ZW50TG9nIHNjaGVkdWxlZFRyYW5zZmVyUGVyaW9kPSJQVDFNIj4gPERhdGFTb3VyY2UgbmFtZT0iQXBwbGljYXRpb24hKltTeXN0ZW1bKExldmVsPTEgb3IgTGV2ZWw9MiBvciBMZXZlbD0zKV1dIi8+IDxEYXRhU291cmNlIG5hbWU9IlNlY3VyaXR5ISpbU3lzdGVtWyhiYW5kKEtleXdvcmRzLDQ1MDM1OTk2MjczNzA0OTYpKV1dIi8+IDxEYXRhU291cmNlIG5hbWU9IlN5c3RlbSEqW1N5c3RlbVsoTGV2ZWw9MSBvciBMZXZlbD0yIG9yIExldmVsPTMpXV0iLz48L1dpbmRvd3NFdmVudExvZz48UGVyZm9ybWFuY2VDb3VudGVycyBzY2hlZHVsZWRUcmFuc2ZlclBlcmlvZD0iUFQxTSI+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXFByb2Nlc3NvciBJbmZvcm1hdGlvbihfVG90YWwpXCUgUHJvY2Vzc29yIFRpbWUiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJQZXJjZW50Ii8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXFByb2Nlc3NvciBJbmZvcm1hdGlvbihfVG90YWwpXCUgUHJpdmlsZWdlZCBUaW1lIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iUGVyY2VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxQcm9jZXNzb3IgSW5mb3JtYXRpb24oX1RvdGFsKVwlIFVzZXIgVGltZSIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IlBlcmNlbnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcUHJvY2Vzc29yIEluZm9ybWF0aW9uKF9Ub3RhbClcUHJvY2Vzc29yIEZyZXF1ZW5jeSIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkNvdW50Ii8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXFN5c3RlbVxQcm9jZXNzZXMiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJDb3VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxQcm9jZXNzKF9Ub3RhbClcVGhyZWFkIENvdW50IiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQ291bnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcUHJvY2VzcyhfVG90YWwpXEhhbmRsZSBDb3VudCIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkNvdW50Ii8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXFN5c3RlbVxTeXN0ZW0gVXAgVGltZSIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkNvdW50Ii8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXFN5c3RlbVxDb250ZXh0IFN3aXRjaGVzL3NlYyIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkNvdW50UGVyU2Vjb25kIi8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXFN5c3RlbVxQcm9jZXNzb3IgUXVldWUgTGVuZ3RoIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQ291bnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTWVtb3J5XCUgQ29tbWl0dGVkIEJ5dGVzIEluIFVzZSIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IlBlcmNlbnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTWVtb3J5XEF2YWlsYWJsZSBCeXRlcyIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkJ5dGVzIi8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXE1lbW9yeVxDb21taXR0ZWQgQnl0ZXMiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJCeXRlcyIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxNZW1vcnlcQ2FjaGUgQnl0ZXMiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJCeXRlcyIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxNZW1vcnlcUG9vbCBQYWdlZCBCeXRlcyIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkJ5dGVzIi8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXE1lbW9yeVxQb29sIE5vbnBhZ2VkIEJ5dGVzIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQnl0ZXMiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTWVtb3J5XFBhZ2VzL3NlYyIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkNvdW50UGVyU2Vjb25kIi8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXE1lbW9yeVxQYWdlIEZhdWx0cy9zZWMiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJDb3VudFBlclNlY29uZCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxQcm9jZXNzKF9Ub3RhbClcV29ya2luZyBTZXQiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJDb3VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxQcm9jZXNzKF9Ub3RhbClcV29ya2luZyBTZXQgLSBQcml2YXRlIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQ291bnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTG9naWNhbERpc2soX1RvdGFsKVwlIERpc2sgVGltZSIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IlBlcmNlbnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTG9naWNhbERpc2soX1RvdGFsKVwlIERpc2sgUmVhZCBUaW1lIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iUGVyY2VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxMb2dpY2FsRGlzayhfVG90YWwpXCUgRGlzayBXcml0ZSBUaW1lIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iUGVyY2VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxMb2dpY2FsRGlzayhfVG90YWwpXCUgSWRsZSBUaW1lIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iUGVyY2VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxMb2dpY2FsRGlzayhfVG90YWwpXERpc2sgQnl0ZXMvc2VjIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQnl0ZXNQZXJTZWNvbmQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTG9naWNhbERpc2soX1RvdGFsKVxEaXNrIFJlYWQgQnl0ZXMvc2VjIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQnl0ZXNQZXJTZWNvbmQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTG9naWNhbERpc2soX1RvdGFsKVxEaXNrIFdyaXRlIEJ5dGVzL3NlYyIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkJ5dGVzUGVyU2Vjb25kIi8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXExvZ2ljYWxEaXNrKF9Ub3RhbClcRGlzayBUcmFuc2ZlcnMvc2VjIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQnl0ZXNQZXJTZWNvbmQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTG9naWNhbERpc2soX1RvdGFsKVxEaXNrIFJlYWRzL3NlYyIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkJ5dGVzUGVyU2Vjb25kIi8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXExvZ2ljYWxEaXNrKF9Ub3RhbClcRGlzayBXcml0ZXMvc2VjIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQnl0ZXNQZXJTZWNvbmQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTG9naWNhbERpc2soX1RvdGFsKVxBdmcuIERpc2sgc2VjL1RyYW5zZmVyIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQ291bnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTG9naWNhbERpc2soX1RvdGFsKVxBdmcuIERpc2sgc2VjL1JlYWQiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJDb3VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxMb2dpY2FsRGlzayhfVG90YWwpXEF2Zy4gRGlzayBzZWMvV3JpdGUiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJDb3VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxMb2dpY2FsRGlzayhfVG90YWwpXEF2Zy4gRGlzayBRdWV1ZSBMZW5ndGgiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJDb3VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxMb2dpY2FsRGlzayhfVG90YWwpXEF2Zy4gRGlzayBSZWFkIFF1ZXVlIExlbmd0aCIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkNvdW50Ii8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXExvZ2ljYWxEaXNrKF9Ub3RhbClcQXZnLiBEaXNrIFdyaXRlIFF1ZXVlIExlbmd0aCIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkNvdW50Ii8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXExvZ2ljYWxEaXNrKF9Ub3RhbClcJSBGcmVlIFNwYWNlIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iUGVyY2VudCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxMb2dpY2FsRGlzayhfVG90YWwpXEZyZWUgTWVnYWJ5dGVzIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQ291bnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTmV0d29yayBJbnRlcmZhY2UoKilcQnl0ZXMgVG90YWwvc2VjIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQnl0ZXNQZXJTZWNvbmQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTmV0d29yayBJbnRlcmZhY2UoKilcQnl0ZXMgU2VudC9zZWMiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJCeXRlc1BlclNlY29uZCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxOZXR3b3JrIEludGVyZmFjZSgqKVxCeXRlcyBSZWNlaXZlZC9zZWMiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJCeXRlc1BlclNlY29uZCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxOZXR3b3JrIEludGVyZmFjZSgqKVxQYWNrZXRzL3NlYyIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkJ5dGVzUGVyU2Vjb25kIi8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXE5ldHdvcmsgSW50ZXJmYWNlKCopXFBhY2tldHMgU2VudC9zZWMiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJCeXRlc1BlclNlY29uZCIvPjxQZXJmb3JtYW5jZUNvdW50ZXJDb25maWd1cmF0aW9uIGNvdW50ZXJTcGVjaWZpZXI9IlxOZXR3b3JrIEludGVyZmFjZSgqKVxQYWNrZXRzIFJlY2VpdmVkL3NlYyIgc2FtcGxlUmF0ZT0iUFQ2MFMiIHVuaXQ9IkJ5dGVzUGVyU2Vjb25kIi8+PFBlcmZvcm1hbmNlQ291bnRlckNvbmZpZ3VyYXRpb24gY291bnRlclNwZWNpZmllcj0iXE5ldHdvcmsgSW50ZXJmYWNlKCopXFBhY2tldHMgT3V0Ym91bmQgRXJyb3JzIiBzYW1wbGVSYXRlPSJQVDYwUyIgdW5pdD0iQ291bnQiLz48UGVyZm9ybWFuY2VDb3VudGVyQ29uZmlndXJhdGlvbiBjb3VudGVyU3BlY2lmaWVyPSJcTmV0d29yayBJbnRlcmZhY2UoKilcUGFja2V0cyBSZWNlaXZlZCBFcnJvcnMiIHNhbXBsZVJhdGU9IlBUNjBTIiB1bml0PSJDb3VudCIvPjwvUGVyZm9ybWFuY2VDb3VudGVycz48TWV0cmljcyByZXNvdXJjZUlkPSIvc3Vic2NyaXB0aW9ucy8wZGUyMzg1Zi1jYzFhLTQwMDUtODllZS05ZjQzMDBiZGExNDgvcmVzb3VyY2VHcm91cHMvc3N5c2cvcHJvdmlkZXJzL01pY3Jvc29mdC5Db21wdXRlL3ZpcnR1YWxNYWNoaW5lcy9zc3lwYXpyZHMzIj48TWV0cmljQWdncmVnYXRpb24gc2NoZWR1bGVkVHJhbnNmZXJQZXJpb2Q9IlBUMUgiLz48TWV0cmljQWdncmVnYXRpb24gc2NoZWR1bGVkVHJhbnNmZXJQZXJpb2Q9IlBUMU0iLz48L01ldHJpY3M+PERpcmVjdG9yaWVzLz48L0RpYWdub3N0aWNNb25pdG9yQ29uZmlndXJhdGlvbj48L1dhZENmZz4="
+            },
+            "protectedSettings": {
+              "storageAccountName": "[variables('diagStorAccName')]",
+              "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]",
+              "storageAccountEndPoint": "https://core.windows.net"
+            }
+          }
+        },
+        {
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(parameters('vmName'),'/DAExtension')]",
+          "apiVersion": "2017-03-30",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('vmName'), 'Microsoft.EnterpriseCloud.Monitoring')]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+            "type": "DependencyAgentWindows",
+            "typeHandlerVersion": "9.5",
+            "autoUpgradeMinorVersion": true
+          }
+        },
+        {
+          "type": "Microsoft.Storage/storageAccounts",
+          "apiVersion": "2018-07-01",
+          "name": "[variables('diagStorAccName')]",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "displayName": "[variables('diagStorAccName')]"
+          },
+          "sku": {
+            "name": "Standard_LRS"
+          },
+          "kind": "Storagev2",
+          "properties": {
+            "networkAcls": {
+              "bypass": "ValtoSupport",
+              "virtualNetworkRules": [
+                {
+                  "id": "[variables('subnetRef')]",
+                  "action": "Allow"
+                }
+              ],
+              "ipRules": [
+                {
+                  "value": "20.77.103.66",
+                  "action": "Allow"
+                }
+              ],
+              "defaultAction": "Deny"
+            },
+            "supportsHttpsTrafficOnly": true,
+            "encryption": {
+              "services": {
+                "file": {
+                  "enabled": true
+                },
+                "blob": {
+                  "enabled": true
+                }
+              },
+              "keySource": "Microsoft.Storage"
+            },
+            "accessTier": "Hot"
+          }
+        },
+        {
+          "apiVersion": "2015-05-01-preview",
+          "type": "Microsoft.Network/networkInterfaces",
+          "name": "[variables('nicName')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/publicIpAddresses/', 'pip-', parameters('vmname'))]"
+          ],
+          "properties": {
+            "ipConfigurations": [
+              {
+                "name": "ipconfig1",
+                "properties": {
+                  "subnet": {
+                    "id": "[variables('subnetRef')]"
+                  },
+                  "publicIPAddress": {
+                    "id": "[resourceId('Microsoft.Network/publicIpAddresses/', concat('pip-', parameters('vmname')))]"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2017-03-30",
+          "type": "Microsoft.Compute/virtualMachines",
+          "name": "[parameters('vmName')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Storage/storageAccounts/', variables('diagStorAccName'))]",
+            "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+          ],
+          "tags": {
+            "Managed By": "Valto",
+            "Description": "Valto Management Jumpbox",
+            "Management Class": "VM",
+            "Management Tier": "1"
+          },
+          "properties": {
+            "hardwareProfile": {
+              "vmSize": "Standard_b2ms"
+            },
+            "osProfile": {
+              "computerName": "[parameters('vmName')]",
+              "adminUsername": "ValtoAdmin",
+              "adminPassword": "[parameters('adminPassword')]"
+            },
+            "storageProfile": {
+              "imageReference": {
+                "publisher": "MicrosoftWindowsServer",
+                "offer": "WindowsServer",
+                "sku": "[parameters('sku')]",
+                "version": "latest"
+              },
+              "osDisk": {
+                "name": "[concat(parameters('vmName'),'_osDisk')]",
+                "caching": "ReadWrite",
+                "createOption": "FromImage",
+                "managedDisk": {
+                  "storageAccountType": "Premium_LRS"
+                }
+              }
+            },
+            "networkProfile": {
+              "networkInterfaces": [
+                {
+                  "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+                }
+              ]
+            },
+            "diagnosticsProfile": {
+              "bootDiagnostics": {
+                "enabled": true,
+                "storageUri": "[concat('http://',variables('diagStorAccName'),'.blob.core.windows.net')]"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "resourceGroup": "ManagementVM-RG",
+    "parameters": {
+      "vmname": {
+        "value": "[parameters('deployManagementJumpboxVM_Name')]"
+      },
+      "SKU": {
+        "value": "[parameters('deployManagementJumpboxVM_SKU')]"
+      },
+      "adminPassword": {
+        "value": "[parameters('deployManagementJumpboxVM_adminPassword')]"
+      },
+      "virtualNetworkName": {
+        "value": "[artifacts('hub-network').outputs.hubVnetName]"
+      },
+      "virtualNetworkResourceGroup": {
+        "value": "[artifacts('hub-network').outputs.hubVnetResourceGroupName]"
+      },
+      "regionAbbr": {
+        "value": "[parameters('regionAbbr')]"
+      },
+      "workspaceId": {
+        "value": "[artifacts('management-services').outputs.logAnalyticsWorkspaceResourceId]"
+      },
+      "omsWorkspaceResourceGroup": {
+        "value": "[artifacts('management-services').outputs.sharedServicesResourceGroupName]"
+      },
+      "omsWorkspaceName": {
+        "value": "[artifacts('management-services').outputs.logAnalyticsWorkspaceName]"
+      },
+      "keyVaultResourceGroup": {
+        "value": "[artifacts('management-services').outputs.sharedServicesResourceGroupName]"
+      },
+      "keyVaultName": {
+        "value": "[artifacts('management-services').outputs.keyVaultName]"
+      },
+      "backupRsv": {
+        "value": "[artifacts('management-services').outputs.recoveryServicesVaultName]"
+      },
+      "backupRsvResourceGroup": {
+        "value": "[artifacts('management-services').outputs.sharedServicesResourceGroupName]"
+      }
+    }
+  }
+}

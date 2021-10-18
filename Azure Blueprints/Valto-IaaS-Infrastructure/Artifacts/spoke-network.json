@@ -1,0 +1,218 @@
+{
+  "kind": "template",
+  "properties": {
+    "displayName": "Deploy Spoke Network with NAT Gateway and VNET Peering to Hub VNET",
+    "description": "",
+    "dependsOn": [
+      "hub-network",
+      "management-services"
+    ],
+    "template": {
+      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "hubVnetName": {
+          "type": "string",
+          "metadata": {
+            "description": "Name of the hub VNET"
+          }
+        },
+        "regionAbbr": {
+          "type": "string",
+          "metadata": {
+            "description": "3 letter abbreviation for target region"
+          }
+        },
+        "spokeVnetNameSuffix": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          }
+        },
+        "spokeVnetPrefix": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          }
+        },
+        "spokeVnetsubnet1Name": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          }
+        },
+        "spokeVnetsubnet1AddressPrefix": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          }
+        }
+      },
+      "variables": {
+        "spokeVnetName": "[concat('vnet-', parameters('regionAbbr'), '-', replace(replace(parameters('spokeVnetPrefix'), '.', '-'), '/', '-') , '-', parameters('spokeVnetNameSuffix') )]",
+        "natgwName": "[concat('natgw-', parameters('regionAbbr'), '-', parameters('spokeVnetNameSuffix') )]",
+        "subnets": [
+          {
+            "subnetNameSuffix": "[parameters('spokeVnetsubnet1Name')]",
+            "addressPrefix": "[parameters('spokeVnetsubnet1AddressPrefix')]"
+          }
+        ]
+      },
+      "resources": [
+        {
+          "apiVersion": "2019-09-01",
+          "type": "Microsoft.Network/natGateways",
+          "name": "[variables('natgwName')]",
+          "location": "[resourceGroup().location]",
+          "tags": {},
+          "sku": {
+            "name": "Standard"
+          },
+          "zones": "",
+          "properties": {
+            "publicIPAddresses": [
+              {
+                "id": "[resourceId('Microsoft.Network/publicIpAddresses/', concat('pip-', variables('natgwName')))]"
+              }
+            ],
+            "publicIPPrefixes": [],
+            "idleTimeoutInMinutes": 4
+          },
+          "dependsOn": [
+            "[concat('Microsoft.Network/publicIpAddresses/', 'pip-', variables('natgwName'))]"
+          ]
+        },
+        {
+          "apiVersion": "2019-02-01",
+          "type": "Microsoft.Network/publicIpAddresses",
+          "name": "[concat('pip-', variables('natgwName'))]",
+          "location": "[resourceGroup().location]",
+          "sku": {
+            "name": "Standard"
+          },
+          "properties": {
+            "publicIPAllocationMethod": "Static"
+          }
+        },
+        {
+          "type": "Microsoft.Network/networkSecurityGroups",
+          "apiVersion": "2019-09-01",
+          "location": "[resourceGroup().location]",
+          "name": "[concat('nsg-', parameters('regionAbbr'), '-', parameters('spokeVnetNameSuffix'), '-', variables('subnets')[copyIndex()].subnetNameSuffix)]",
+          "properties": {
+            "securityRules": []
+          },
+          "copy": {
+            "name": "nsgcopy",
+            "count": "[length(variables('subnets'))]"
+          }
+        },
+        {
+          "name": "[variables('spokeVnetName')]",
+          "type": "Microsoft.Network/virtualNetworks",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2017-10-01",
+          "dependsOn": [
+            "nsgcopy",
+            "[concat('Microsoft.Network/natGateways/', variables('natgwName'))]"
+          ],
+          "properties": {
+            "addressSpace": {
+              "addressPrefixes": [
+                "[parameters('spokeVnetPrefix')]"
+              ]
+            },
+            "copy": [
+              {
+                "name": "subnets",
+                "count": "[length(variables('subnets'))]",
+                "input": {
+                  "Name": "[concat('sn-', replace(replace(variables('subnets')[copyIndex('subnets')].addressPrefix, '.', '-'), '/', '-') , '-', variables('subnets')[copyIndex('subnets')].subnetNameSuffix )]",
+                  "properties": {
+                    "natGateway": {
+                      "id": "[resourceId('Microsoft.Network/natGateways/', variables('natgwName'))]"
+                    },
+                    "addressPrefix": "[variables('subnets')[copyIndex('subnets')].addressPrefix]",
+                    "networkSecurityGroup": {
+                      "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat('nsg-', parameters('regionAbbr'), '-', parameters('spokeVnetNameSuffix'), '-', variables('subnets')[copyIndex('subnets')].subnetNameSuffix))]"
+                    },
+                    "serviceEndpoints": [
+                      {
+                        "service": "Microsoft.Storage",
+                        "locations": [
+                          "[resourceGroup().location]"
+                        ]
+                      }
+                    ],
+                    "privateEndpointNetworkPolicies": "Enabled",
+                    "privateLinkServiceNetworkPolicies": "Enabled"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2016-06-01",
+          "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+          "name": "[concat(variables('spokeVnetName'), '/peering-', variables('spokeVnetName'), '_to_hub')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', variables('spokeVnetName'))]"
+          ],
+          "comments": "This is the peering from Spoke VNET to Hub VNET",
+          "properties": {
+            "allowVirtualNetworkAccess": "true",
+            "allowForwardedTraffic": "false",
+            "allowGatewayTransit": "false",
+            "useRemoteGateways": "true",
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('hubVnetName'))]"
+            }
+          }
+        },
+        {
+          "apiVersion": "2016-06-01",
+          "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+          "name": "[concat(parameters('hubVnetName'), '/peering-hub_to_', variables('spokeVnetName'))]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', variables('spokeVnetName'))]"
+          ],
+          "comments": "This is the peering from Spoke VNET to Hub VNET",
+          "properties": {
+            "allowVirtualNetworkAccess": "true",
+            "allowForwardedTraffic": "false",
+            "allowGatewayTransit": "true",
+            "useRemoteGateways": "false",
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('spokeVnetName'))]"
+            }
+          }
+        }
+      ],
+      "outputs": {}
+    },
+    "resourceGroup": "Network-RG",
+    "parameters": {
+      "hubVnetName": {
+        "value": "[artifacts('hub-network').outputs.hubVnetName]"
+      },
+      "regionAbbr": {
+        "value": "[parameters('regionAbbr')]"
+      },
+      "spokeVnetNameSuffix": {
+        "value": "[parameters('deploySpokeNetwork_spokeVnetNameSuffix')]"
+      },
+      "spokeVnetPrefix": {
+        "value": "[parameters('deploySpokeNetwork_spokeVnetPrefix')]"
+      },
+      "spokeVnetsubnet1Name": {
+        "value": "[parameters('deploySpokeNetwork_spokeVnetsubnet1Name')]"
+      },
+      "spokeVnetsubnet1AddressPrefix": {
+        "value": "[parameters('deploySpokeNetwork_spokeVnetsubnet1AddressPrefix')]"
+      }
+    }
+  }
+}

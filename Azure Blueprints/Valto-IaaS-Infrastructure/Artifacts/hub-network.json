@@ -1,0 +1,496 @@
+{
+  "kind": "template",
+  "properties": {
+    "displayName": "Deploy Hub Network with VNET Gateways",
+    "description": "",
+    "dependsOn": [
+      "management-services"
+    ],
+    "template": {
+      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "regionAbbr": {
+          "type": "string",
+          "metadata": {
+            "description": "3 letter abbreviation for target region (e.g. WEU for West Europe, UKS for UK South)."
+          }
+        },
+        "nameSuffix": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          },
+          "defaultValue": "hub"
+        },
+        "vNetAddressPrefix": {
+          "type": "string",
+          "metadata": {
+            "description": ""
+          }
+        },
+        "AzureFirewallSubnetPrefix": {
+          "type": "string",
+          "metadata": {
+            "description": "Prefix for the Azure Firewall Subnet (first /26 in VNET Address Space)"
+          }
+        },
+        "GatewaySubnetPrefix": {
+          "type": "string",
+          "metadata": {
+            "description": "Prefix for the Gateway Subnet (/27 immediately following Azure Firewall Subnet)"
+          }
+        },
+        "ManagementSubnetPrefix": {
+          "type": "string",
+          "metadata": {
+            "description": "Prefix for the Management Subnet (/27 immediately following the NVA Subnet)"
+          }
+        },
+        "vpnGwSku": {
+          "type": "string",
+          "metadata": {
+            "description": "The VPN Gateway SKU (if one is being deployed - Basic = 100mps)."
+          },
+          "allowedValues": [
+            "Basic",
+            "VpnGw1",
+            "VpnGw2",
+            "VpnGw3"
+          ],
+          "defaultValue": "Basic"
+        },
+        "exprGwSku": {
+          "type": "string",
+          "metadata": {
+            "description": "The ExpressRoute Gateway SKU (if one is being deployed)."
+          },
+          "allowedValues": [
+            "Standard",
+            "HighPerformance",
+            "UltraPerformance"
+          ],
+          "defaultValue": "Standard"
+        },
+        "deployVpnGw": {
+          "type": "bool",
+          "metadata": {
+            "description": "Should a VPN Gateway be deployed (the default is true)."
+          },
+          "defaultValue": true
+        },
+        "deployExprGw": {
+          "type": "bool",
+          "metadata": {
+            "description": "Should an ExpressRoute Gateway be deployed (the default is false)."
+          },
+          "defaultValue": false
+        },
+        "workspaceName": {
+          "type": "string",
+          "metadata": {
+            "description": "Log Analytics Workspace Name"
+          }
+        },
+        "workspaceResourceGroup": {
+          "type": "string",
+          "metadata": {
+            "description": "Log Analytics Workspace Resource Group Name"
+          }
+        }
+      },
+      "variables": {
+        "diagStorAccName": "[concat('stordiags',uniqueString(subscription().subscriptionId, resourceGroup().id))]",
+        "vnetName": "[concat('vnet-', parameters('regionAbbr'), '-', replace(replace(parameters('vnetAddressPrefix'), '.', '-'), '/', '-') , '-', parameters('nameSuffix') )]",
+        "managementNsgName": "[concat('nsg-', parameters('regionAbbr'), '-', parameters('nameSuffix'), '-management' )]",
+        "vpnGwName": "[ concat('vngw-',parameters('regionAbbr'),'-vpn01')]",
+        "exprGwName": "[ concat('vngw-',parameters('regionAbbr'),'-expr01')]"
+      },
+      "resources": [
+        {
+          "name": "[variables('vnetName')]",
+          "type": "Microsoft.Network/virtualNetworks",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2017-10-01",
+          "dependsOn": [
+            "[concat('Microsoft.Network/networkSecurityGroups/', variables('managementNsgName'))]"
+          ],
+          "properties": {
+            "addressSpace": {
+              "addressPrefixes": [
+                "[parameters('vNetAddressPrefix')]"
+              ]
+            },
+            "subnets": [
+              {
+                "name": "AzureFirewallSubnet",
+                "properties": {
+                  "addressPrefix": "[parameters('AzureFirewallSubnetPrefix')]"
+                }
+              },
+              {
+                "name": "GatewaySubnet",
+                "properties": {
+                  "addressPrefix": "[parameters('GatewaySubnetPrefix')]"
+                }
+              },
+              {
+                "name": "Management",
+                "properties": {
+                  "addressPrefix": "[parameters('ManagementSubnetPrefix')]",
+                  "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('managementNsgName'))]"
+                  },
+                  "serviceEndpoints": [
+                    {
+                      "service": "Microsoft.Storage",
+                      "locations": [
+                        "[resourceGroup().location]"
+                      ]
+                    }
+                  ],
+                  "privateEndpointNetworkPolicies": "Enabled",
+                  "privateLinkServiceNetworkPolicies": "Enabled"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Microsoft.Network/networkSecurityGroups",
+          "apiVersion": "2019-09-01",
+          "name": "[variables('managementNsgName')]",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "securityRules": [
+              {
+                "name": "AllowRDPFromValto",
+                "properties": {
+                  "description": "Allow connections from specific source IP addresses to resource that have been assigned a public IP address on this subnet",
+                  "protocol": "*",
+                  "sourcePortRange": "*",
+                  "sourceAddressPrefixes": [
+                    "20.77.103.66/32"
+                  ],
+                  "destinationAddressPrefix": "*",
+                  "access": "Allow",
+                  "priority": 100,
+                  "direction": "Inbound",
+                  "sourcePortRanges": [],
+                  "destinationPortRanges": [
+                    "3389"
+                  ],
+                  "destinationAddressPrefixes": []
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Microsoft.Storage/storageAccounts",
+          "apiVersion": "2018-07-01",
+          "name": "[variables('diagStorAccName')]",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "displayName": "[variables('diagStorAccName')]"
+          },
+          "sku": {
+            "name": "Standard_ZRS"
+          },
+          "kind": "Storagev2",
+          "properties": {
+            "networkAcls": {
+              "bypass": "ValtoSupport",
+              "virtualNetworkRules": [],
+              "ipRules": [
+                {
+                  "value": "20.77.103.66",
+                  "action": "Allow"
+                }
+              ],
+              "defaultAction": "Deny"
+            },
+            "supportsHttpsTrafficOnly": true,
+            "encryption": {
+              "services": {
+                "file": {
+                  "enabled": true
+                },
+                "blob": {
+                  "enabled": true
+                }
+              },
+              "keySource": "Microsoft.Storage"
+            },
+            "accessTier": "Hot"
+          }
+        },
+        {
+          "apiVersion": "2019-02-01",
+          "name": "[variables('vpnGwName')]",
+          "type": "Microsoft.Network/virtualNetworkGateways",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/publicIPAddresses/', 'pip-', variables('vpnGwName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
+          ],
+          "tags": {},
+          "properties": {
+            "gatewayType": "VPN",
+            "ipConfigurations": [
+              {
+                "name": "default",
+                "properties": {
+                  "privateIPAllocationMethod": "Dynamic",
+                  "subnet": {
+                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/GatewaySubnet')]"
+                  },
+                  "publicIpAddress": {
+                    "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIPAddresses', concat('pip-', variables('vpnGwName')))]"
+                  }
+                }
+              }
+            ],
+            "vpnType": "RouteBased",
+            "sku": {
+              "name": "[parameters('vpnGwSku')]",
+              "tier": "[parameters('vpnGwSku')]"
+            }
+          }
+        },
+        {
+          "type": "Microsoft.Network/virtualNetworkGateways/providers/diagnosticsettings",
+          "name": "[concat(variables('vpnGwName'), '/Microsoft.Insights/service')]",
+          "apiVersion": "2016-09-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Network/virtualNetworkGateways', variables('vpnGwName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName'))]"
+          ],
+          "properties": {
+            "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName'))]",
+            "workspaceId": "[resourceId(parameters('workspaceResourceGroup'), 'microsoft.operationalinsights/workspaces/', parameters('workspaceName'))]",
+            "logs": [
+              {
+                "category": "GatewayDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              },
+              {
+                "category": "TunnelDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              },
+              {
+                "category": "RouteDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              },
+              {
+                "category": "IKEDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              },
+              {
+                "category": "P2SDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              }
+            ],
+            "metrics": [
+              {
+                "category": "AllMetrics",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "365"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2019-02-01",
+          "type": "Microsoft.Network/publicIPAddresses",
+          "name": "[concat('pip-', variables('vpnGwName'))]",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "publicIPAllocationMethod": "Dynamic"
+          }
+        },
+        {
+          "apiVersion": "2019-02-01",
+          "type": "Microsoft.Network/virtualNetworkGateways",
+          "name": "[variables('exprGwName')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/publicIPAddresses/', 'pip-', variables('exprGwName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
+            "[concat('Microsoft.Network/virtualNetworkGateways/', variables('vpnGwName'))]"
+          ],
+          "tags": {},
+          "condition": "[parameters('deployExprGw')]",
+          "properties": {
+            "gatewayType": "ExpressRoute",
+            "ipConfigurations": [
+              {
+                "name": "default",
+                "properties": {
+                  "privateIPAllocationMethod": "Dynamic",
+                  "subnet": {
+                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/GatewaySubnet')]"
+                  },
+                  "publicIpAddress": {
+                    "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIPAddresses', concat('pip-', variables('exprGwName')))]"
+                  }
+                }
+              }
+            ],
+            "sku": {
+              "name": "[parameters('exprGwSku')]",
+              "tier": "[parameters('exprGwSku')]"
+            }
+          }
+        },
+        {
+          "type": "Microsoft.Network/virtualNetworkGateways/providers/diagnosticsettings",
+          "name": "[concat(variables('exprGwName'), '/Microsoft.Insights/service')]",
+          "apiVersion": "2016-09-01",
+          "location": "[resourceGroup().location]",
+          "condition": "[parameters('deployExprGw')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Network/virtualNetworkGateways', variables('exprGwName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName'))]"
+          ],
+          "properties": {
+            "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagStorAccName'))]",
+            "workspaceId": "[resourceId(parameters('workspaceResourceGroup'), 'microsoft.operationalinsights/workspaces/', parameters('workspaceName'))]",
+            "logs": [
+              {
+                "category": "GatewayDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              },
+              {
+                "category": "TunnelDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              },
+              {
+                "category": "RouteDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              },
+              {
+                "category": "IKEDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              },
+              {
+                "category": "P2SDiagnosticLog",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "14"
+                }
+              }
+            ],
+            "metrics": [
+              {
+                "category": "AllMetrics",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "365"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2019-02-01",
+          "type": "Microsoft.Network/publicIPAddresses",
+          "condition": "[parameters('deployExprGw')]",
+          "name": "[concat('pip-', variables('exprGwName'))]",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "publicIPAllocationMethod": "Dynamic"
+          }
+        }
+      ],
+      "outputs": {
+        "hubVnetName": {
+          "type": "string",
+          "value": "[variables('vnetName')]"
+        },
+        "hubVnetResourceGroupName": {
+          "type": "string",
+          "value": "[resourceGroup().name]"
+        }
+      }
+    },
+    "resourceGroup": "Network-RG",
+    "parameters": {
+      "nameSuffix": {
+        "value": "hub"
+      },
+      "AzureFirewallSubnetPrefix": {
+        "value": "[parameters('deployHubNetwork_AzureFirewallSubnetPrefix')]"
+      },
+      "GatewaySubnetPrefix": {
+        "value": "[parameters('deployHubNetwork_GatewaySubnetPrefix')]"
+      },
+      "ManagementSubnetPrefix": {
+        "value": "[parameters('deployHubNetwork_ManagementSubnetPrefix')]"
+      },
+      "vpnGwSku": {
+        "value": "[parameters('deployHubNetwork_vpnGwSku')]"
+      },
+      "deployExprGw": {
+        "value": "[parameters('deployHubNetwork_deployExprGw')]"
+      },
+      "vNetAddressPrefix": {
+        "value": "[parameters('deployHubNetwork_vNetAddressPrefix')]"
+      },
+      "exprGwSku": {
+        "value": "[parameters('deployHubNetwork_exprGwSku')]"
+      },
+      "regionAbbr": {
+        "value": "[parameters('regionAbbr')]"
+      },
+      "workspaceResourceGroup": {
+        "value": "[artifacts('management-services').outputs.sharedServicesResourceGroupName]"
+      },
+      "workspaceName": {
+        "value": "[artifacts('management-services').outputs.logAnalyticsWorkspaceName]"
+      }
+    }
+  }
+}

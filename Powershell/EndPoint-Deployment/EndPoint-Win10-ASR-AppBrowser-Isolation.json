@@ -1,0 +1,111 @@
+{
+    "displayName":  "EndPoint-Win10-ASR-AppBrowser-Isolation",
+    "description":  "VERSION 1.0 [2021]\nVALTO\n\nApplication Guard for Edge",
+    "roleScopeTagIds":  [
+                            "0"
+                        ],
+    "TemplateDisplayName":  "App and browser isolation",
+    "TemplateId":  "c3bd7dc9-9bc4-4d90-8483-51249a2b5dde",
+    "versionInfo":  "2012",
+    "settingsDelta":  [
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "6f46e890-1d0c-4538-a11c-1803083ecb56",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardEnabledOptions",
+                              "valueJson":  "\"enabledForEdge\"",
+                              "value":  "enabledForEdge"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "e403f7f4-8957-46bd-9151-4903869b0e37",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardBlockClipboardSharing",
+                              "valueJson":  "\"blockNone\"",
+                              "value":  "blockNone"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "8d7d980a-34bb-45c8-b6ab-ccd287bfd355",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardAllowCameraMicrophoneRedirection",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "a5ace686-79cc-4801-aa51-69fc748ddc0f",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardCertificateThumbprints",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "975472ec-1534-41fa-869a-3a30e4bcef6c",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardAllowPrintToLocalPrinters",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "419d12f7-8471-42dc-a6d3-f83a3e59a1fe",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardAllowPrintToNetworkPrinters",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "f2467240-accc-4830-b607-ee342079c8c4",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardAllowPrintToPDF",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "12c9061a-589a-4efa-9b38-a6a37ddc8bdc",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardAllowPrintToXPS",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "863e07d0-e0aa-4cb8-816e-5b3fc33036d4",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardBlockNonEnterpriseContent",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "94310e3c-07af-4a52-beeb-f19d3e253d06",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardForceAuditing",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "d8864247-8b64-42fa-9dc4-e0bc387fc108",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardAllowPersistence",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "dcc7a41d-9d7d-4d2e-8c8d-725167307418",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardAllowVirtualGPU",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "ef848ded-44f0-4ebf-a0e0-442aa8ab0db8",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_applicationGuardAllowFileSaveOnHost",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementComplexSettingInstance",
+                              "id":  "d3003151-a45e-4522-82e7-efa5980e400f",
+                              "definitionId":  "deviceConfiguration--windows10NetworkBoundaryConfiguration_windowsNetworkIsolationPolicy",
+                              "valueJson":  "null",
+                              "value":  [
+
+                                        ]
+                          }
+                      ]
+}

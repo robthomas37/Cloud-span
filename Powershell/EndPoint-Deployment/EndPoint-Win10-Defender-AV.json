@@ -1,0 +1,261 @@
+{
+    "displayName":  "EndPoint-Win10-Defender-AV",
+    "description":  "VERSION 1.0 [2021]\nVALTO ",
+    "roleScopeTagIds":  [
+                            "0"
+                        ],
+    "TemplateDisplayName":  "Microsoft Defender Antivirus",
+    "TemplateId":  "ccef13ea-d0a2-49b5-9a8a-5e397faeb9e4",
+    "versionInfo":  "LOC NEEDED: Template_V006AntivirusVersion",
+    "settingsDelta":  [
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "905f14de-d035-421a-b686-4d02d6e29af8",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowCloudProtection",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "350e211c-3869-489a-9903-2a86756afb21",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderCloudBlockLevel",
+                              "valueJson":  "\"high\"",
+                              "value":  "high"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementIntegerSettingInstance",
+                              "id":  "ad36a564-c68c-4cae-877c-c2c2f91dcc8b",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderCloudExtendedTimeoutInSeconds",
+                              "valueJson":  "50",
+                              "value":  50
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "6d3af9c5-67d5-4016-a980-52f5a0e8ac80",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowRealTimeMonitoring",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "1cfa92ce-02c2-480a-bd44-67c4fb9a8c1c",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowOnAccessProtection",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "bef402c9-7c73-47c7-bda0-8bf0fae27a15",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderScanDirection",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "7dc08b34-6775-4110-8cf1-730931243247",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowBehaviorMonitoring",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "d0da66e7-ceb7-421b-a7af-f71e6389d0ea",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowIntrusionPreventionSystem",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "c0f5044e-9a3c-455c-8215-3f570e582102",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderNetworkProtectionType",
+                              "valueJson":  "\"enable\"",
+                              "value":  "enable"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "238129c0-6a61-40af-b1f6-72af5348ca90",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowScanDownloads",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "8466ed37-9099-4b6b-8be8-ff1520e7458f",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowScanScriptsLoadedInInternetExplorer",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "797e4f18-56b4-4446-b048-4ff23ad9a6b9",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowScanNetworkFiles",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "a1b84ebb-3cb9-49c4-b577-ff71fe8c4883",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderEnableScanIncomingMail",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementIntegerSettingInstance",
+                              "id":  "7afe5d04-1a85-44af-8b29-29f93a2614ec",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderDaysBeforeDeletingQuarantinedMalware",
+                              "valueJson":  "30",
+                              "value":  30
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "f20beaa2-3be0-4e08-9e0a-8bab19eb1223",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderSubmitSamplesConsentType",
+                              "valueJson":  "\"sendAllSamplesAutomatically\"",
+                              "value":  "sendAllSamplesAutomatically"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "65d147b8-039c-4325-84fe-3997c5d34c7e",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderPotentiallyUnwantedAppAction",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementComplexSettingInstance",
+                              "id":  "723216fa-b680-4b9b-b5f7-2fb71fa612e6",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderDetectedMalwareActions",
+                              "valueJson":  "null",
+                              "value":  [
+
+                                        ]
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "6a495c7b-5b1e-41d5-a9b3-c6e6fbfd6c3c",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowScanArchiveFiles",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "bab5938c-4880-49cc-99df-8c3542fe01f6",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderEnableLowCpuPriority",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "e4291cbf-13cb-42e3-ad97-dcf52b5701e5",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderDisableCatchupFullScan",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "3607ef4a-71ae-4521-a0ff-7b11caa64d23",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderDisableCatchupQuickScan",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementIntegerSettingInstance",
+                              "id":  "b42f13b9-cd46-47c5-8267-16b124973ef0",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderScanMaxCpuPercentage",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "49e49d7b-9c58-4bd6-a514-f60f6c147fcd",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderEnableScanMappedNetworkDrivesDuringFullScan",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "280904fc-3372-4565-898b-1523e01cf0b5",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderScheduledQuickScanTime",
+                              "valueJson":  "\"t5PM\"",
+                              "value":  "t5PM"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "a812ffe3-1ef7-4d29-b489-8d7421fdc1f5",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderScanType",
+                              "valueJson":  "\"quick\"",
+                              "value":  "quick"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "210fbdc2-a4d3-48c7-b0c8-5b145162360e",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderScheduledScanDay",
+                              "valueJson":  "\"friday\"",
+                              "value":  "friday"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "aa7a11ca-d0e3-4125-9a90-bf02bc8d10eb",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderScheduledScanTime",
+                              "valueJson":  "\"t5PM\"",
+                              "value":  "t5PM"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "3bf087b9-9398-4a2b-bfea-88cd9c768ce6",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderCheckForSignaturesBeforeRunningScan",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementIntegerSettingInstance",
+                              "id":  "563f6a3f-a874-43a1-b1e9-f2bf43dea1ef",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderSignatureUpdateIntervalInHours",
+                              "valueJson":  "8",
+                              "value":  8
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "e7669c26-d4a8-49c3-908a-06d12c618638",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderSignatureUpdateFileSharesSources",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "76952c21-4688-4f52-a380-d05a73466337",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderSignatureUpdateFallbackOrder",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "11062685-d01e-421c-b317-47e875b84222",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderAllowEndUserAccess",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "8f7812e0-1741-4dff-865a-c8ac9ce06100",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_configurationDisableLocalAdminMerge",
+                              "valueJson":  "null",
+                              "value":  null
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "f7c5b46c-e516-4783-920c-bd606cbc7e47",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderProcessesToExclude",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "1fe02e8c-5c31-4be3-855a-8d94ddde88fa",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderFileExtensionsToExclude",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "e6290030-d35f-49da-a72a-99306281ca29",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderFilesAndFoldersToExclude",
+                              "valueJson":  "null"
+                          }
+                      ]
+}

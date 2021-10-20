@@ -1,0 +1,64 @@
+{
+    "displayName":  "EndPoint-MacOS-Defender-AV",
+    "description":  "VERSION 1.0 [2021]\nVALTO",
+    "roleScopeTagIds":  [
+                            "0"
+                        ],
+    "TemplateDisplayName":  "Antivirus",
+    "TemplateId":  "2a68aa33-f853-4572-94bc-7dbdc87fd51e",
+    "versionInfo":  "2005",
+    "settingsDelta":  [
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "ef1df07a-bb07-46d8-9c78-e9c1a682df07",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_advancedThreatProtectionRealTime",
+                              "valueJson":  "\"enabled\"",
+                              "value":  "enabled"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "dcd23ecd-5a63-4f2f-9251-179f1ca452de",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_advancedThreatProtectionCloudDelivered",
+                              "valueJson":  "\"enabled\"",
+                              "value":  "enabled"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "9adaec8e-eca1-42dc-bf99-3485b2529c18",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_advancedThreatProtectionAutomaticSampleSubmission",
+                              "valueJson":  "\"notConfigured\"",
+                              "value":  "notConfigured"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "3ac841ac-b3be-4eb6-940c-ef7aa9b5c8e6",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_advancedThreatProtectionDiagnosticDataCollection",
+                              "valueJson":  "\"notConfigured\"",
+                              "value":  "notConfigured"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "32016cb8-680e-4309-88ef-fe6f08d48692",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_advancedThreatProtectionExcludedFolders",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "66dbecb9-d35a-404a-bbb1-f585862a1d5c",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_advancedThreatProtectionExcludedFiles",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "1af76fd7-1fff-4da2-a379-29cd0f10f696",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_advancedThreatProtectionExcludedExtensions",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "c27a5141-f9bc-4c25-9fad-500c5cac9736",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_advancedThreatProtectionExcludedProcesses",
+                              "valueJson":  "null"
+                          }
+                      ]
+}

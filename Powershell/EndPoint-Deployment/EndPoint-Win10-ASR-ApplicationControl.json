@@ -1,0 +1,33 @@
+{
+    "displayName":  "EndPoint-Win10-ASR-ApplicationControl",
+    "description":  "VERSION 1.0 [2021]\nVALTO\n\nWindows SmartScreen Enabled",
+    "roleScopeTagIds":  [
+                            "0"
+                        ],
+    "TemplateDisplayName":  "Application control",
+    "TemplateId":  "63be6324-e3c9-4c97-948a-e7f4b96f0f20",
+    "versionInfo":  "2005",
+    "settingsDelta":  [
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementStringSettingInstance",
+                              "id":  "86303a36-f9b6-47cc-a5b0-833873f6de2b",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_appLockerApplicationControl",
+                              "valueJson":  "\"notConfigured\"",
+                              "value":  "notConfigured"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "32dd5f0b-3874-4c16-98b1-e3c35e256f8b",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_smartScreenBlockOverrideForFiles",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "0f2c97e8-63e5-46d8-91c2-30a58130b4b7",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_smartScreenEnableInShell",
+                              "valueJson":  "true",
+                              "value":  true
+                          }
+                      ]
+}

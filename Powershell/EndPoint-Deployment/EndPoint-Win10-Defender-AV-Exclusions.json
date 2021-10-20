@@ -1,0 +1,30 @@
+{
+    "displayName":  "EndPoint-Win10-Defender-AV-Exclusions",
+    "description":  "VERSION 1.0 [2021]\nVALTO \nRequires customer exclusions",
+    "roleScopeTagIds":  [
+                            "0"
+                        ],
+    "TemplateDisplayName":  "Microsoft Defender Antivirus exclusions",
+    "TemplateId":  "a6213d25-e4b3-4888-be36-56c88e0fbd3a",
+    "versionInfo":  "2008",
+    "settingsDelta":  [
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "42576edd-c96d-47a5-ae66-87818a7b7138",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderProcessesToExclude",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "2f6f8a41-4052-4e82-85b9-37b723a37408",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderFileExtensionsToExclude",
+                              "valueJson":  "null"
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "80fea234-a3dd-4abe-b4a1-b78359314e50",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_defenderFilesAndFoldersToExclude",
+                              "valueJson":  "null"
+                          }
+                      ]
+}

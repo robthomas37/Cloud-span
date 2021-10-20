@@ -1,0 +1,39 @@
+{
+    "displayName":  "EndPoint-MacOS-Firewall",
+    "description":  "VERSION 1.0 [2021]\nVALTO",
+    "roleScopeTagIds":  [
+                            "0"
+                        ],
+    "TemplateDisplayName":  "macOS firewall",
+    "TemplateId":  "5340aa10-47a8-4e67-893f-690984e4d5da",
+    "versionInfo":  "2005",
+    "settingsDelta":  [
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "a8123108-8a7d-49dc-a399-2216e495f137",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_firewallEnabled",
+                              "valueJson":  "true",
+                              "value":  true
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "560a6e59-578e-40b7-91b3-1fe9c69d0e97",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_firewallBlockAllIncoming",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementBooleanSettingInstance",
+                              "id":  "f0292a3b-f562-4a88-a463-9d8ef7d96790",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_firewallEnableStealthMode",
+                              "valueJson":  "false",
+                              "value":  false
+                          },
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "73a0dbb5-aabd-4fff-9110-9ec503dc529c",
+                              "definitionId":  "deviceConfiguration--macOSEndpointProtectionConfiguration_firewallApplications",
+                              "valueJson":  "null"
+                          }
+                      ]
+}

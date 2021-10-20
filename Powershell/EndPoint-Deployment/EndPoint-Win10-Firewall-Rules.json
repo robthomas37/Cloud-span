@@ -1,0 +1,18 @@
+{
+    "displayName":  "EndPoint-Win10-Firewall-Rules",
+    "description":  "VERSION 1.0 [2021]\nVALTO",
+    "roleScopeTagIds":  [
+                            "0"
+                        ],
+    "TemplateDisplayName":  "Microsoft Defender Firewall rules",
+    "TemplateId":  "4356d05c-a4ab-4a07-9ece-739f7c792910",
+    "versionInfo":  "2006",
+    "settingsDelta":  [
+                          {
+                              "@odata.type":  "#microsoft.graph.deviceManagementCollectionSettingInstance",
+                              "id":  "e24b6047-fe08-4aaa-96c2-ad8a228db7d4",
+                              "definitionId":  "deviceConfiguration--windows10EndpointProtectionConfiguration_firewallRules",
+                              "valueJson":  "null"
+                          }
+                      ]
+}

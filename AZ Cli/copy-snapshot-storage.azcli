@@ -1,11 +1,5 @@
 
 
-az login 
-
-az account set -s  # ...or use 'az login'
-
-
-
 #Provide the subscription Id where snapshot is created
 subscriptionId="<subscriptionId>"
 
